@@ -1,4 +1,4 @@
-import { Component, createSignal, onCleanup, onMount } from "solid-js"
+import { Component, createSignal, createEffect, onCleanup } from "solid-js"
 import { CameraCapture } from "../lib/webrtc"
 import "./CameraFeed.css"
 
@@ -59,9 +59,11 @@ export const CameraFeed: Component<Props> = (props) => {
   }
 
   // Sync with parent's isActive prop
-  onMount(() => {
-    if (props.isActive) {
+  createEffect(() => {
+    if (props.isActive && !isActive()) {
       startCamera()
+    } else if (!props.isActive && isActive()) {
+      stopCamera()
     }
   })
 

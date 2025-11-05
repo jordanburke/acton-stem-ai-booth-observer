@@ -4,152 +4,252 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**AI Booth Observer** - A live multi-modal agentic AI system for STEM exhibition booths. Uses webcam and microphone to analyze booth interactions in real-time, providing insights and recommendations via Claude Haiku API.
+**AI Booth Observer** - A live multi-modal agentic AI system for STEM exhibition booths. Uses webcam and microphone to analyze booth interactions in real-time via Claude Haiku API.
 
-**Purpose**: Educational demonstration showing true agentic AI capabilities - sensing, analyzing, and acting autonomously.
+**Architecture**: Monorepo with 3 packages:
+- `packages/frontend` - Solid.js web application
+- `packages/worker` - Cloudflare Worker API proxy
+- `packages/shared` - TypeScript types shared between frontend and worker
 
-**Key Documentation**: See `docs/4-ai-booth-observer.md` for complete build guide and `docs/README.md` for context on the broader demo suite.
+**Key Documentation**: See `docs/4-ai-booth-observer.md` for build guide and `README.md` for deployment instructions.
 
 ## Development Commands
 
-### Pre-Checkin Command
+### Monorepo Commands (from root)
 
-- `pnpm validate` - Format, lint, test, and build everything
+```bash
+pnpm install              # Install all dependencies
+pnpm build                # Build all packages (shared → worker → frontend)
+pnpm test                 # Run all tests
+pnpm format               # Format with Prettier
+pnpm lint                 # Lint all packages
+pnpm validate             # Format + lint + test + build (pre-commit)
+```
 
-### Core Development
+### Frontend Development
 
-- `pnpm dev` - Development build with watch mode
-- `pnpm test` - Run tests once
-- `pnpm test:watch` - Run tests in watch mode
-- `pnpm test:ui` - Launch Vitest UI
-- `pnpm format` - Format code with Prettier
-- `pnpm lint` - Fix ESLint issues
-- `pnpm build` - Production build
+```bash
+pnpm --filter frontend dev       # Vite dev server (port 3000)
+pnpm --filter frontend build     # Production build
+pnpm --filter frontend preview   # Preview production build
+pnpm --filter frontend lint      # ESLint
+pnpm --filter frontend deploy    # Deploy to Cloudflare Pages
+```
 
-## Project Architecture
+### Worker Development
 
-### Application Type
+```bash
+pnpm --filter worker dev         # Wrangler dev server (port 8787)
+pnpm --filter worker deploy      # Deploy to Cloudflare Workers
+pnpm --filter worker test        # Run worker tests
+pnpm --filter worker lint        # TypeScript type check
+```
 
-**Web Application** with TypeScript foundation but focused on browser-based multi-modal AI interaction.
+### Shared Package
 
-**Core Components (to be built per docs/4-ai-booth-observer.md)**:
+```bash
+pnpm --filter shared build       # Build types (required before frontend/worker)
+pnpm --filter shared dev         # Watch mode for development
+pnpm --filter shared test        # Run shared package tests
+```
 
-1. **Webcam Capture System** - Browser WebRTC API for video frame capture (30-60s intervals)
-2. **Audio Capture & Transcription** - Web Speech API for real-time conversation analysis
-3. **Claude API Integration** - Multi-modal API calls combining vision + text
-4. **Real-time Display UI** - Live analysis dashboard showing scene, audio, engagement, recommendations
-5. **Privacy & Cost Management** - No recording, rate limiting, budget tracking
+## Architecture Overview
 
-### Build System
+### Request Flow
 
-- **tsup**: Configured for dual output (CommonJS `.js` + ES modules `.mjs`)
-- **Output Directories**:
-  - `lib/` - Development builds (NODE_ENV !== "production")
-  - `dist/` - Production builds (for deployment)
-- **TypeScript**: `.d.ts` declaration files auto-generated
+```
+Browser → Frontend (Solid.js) → Worker (Cloudflare) → Claude API
+  ↓                                    ↓
+WebRTC/Speech APIs           Rate Limiting + KV Storage
+```
 
-### Testing Framework
+**Key Flow**:
+1. Frontend captures webcam frame every 30-120s (WebRTC API)
+2. Frontend transcribes audio in real-time (Web Speech API)
+3. Frontend sends {imageBase64, transcript} to Worker
+4. Worker checks rate limits via KV namespace
+5. Worker calls Claude Haiku with multi-modal input
+6. Worker records token usage in KV
+7. Worker returns analysis to Frontend
+8. Frontend displays insights in dashboard
 
-- **Vitest**: Modern test runner with hot reload and coverage
-- **Coverage**: v8 provider with text/json/html reports
-- **Configuration**: `vitest.config.ts` with Node.js environment
+### Package Structure
 
-### Code Quality
+**Frontend** (`packages/frontend/`):
+- `src/App.tsx` - Main application orchestrator
+- `src/components/` - Solid.js components (CameraFeed, TranscriptPanel, ObservationLog, ControlPanel, PrivacyBanner)
+- `src/lib/` - **MISSING** browser API wrappers (webrtc.ts, speech.ts, api-client.ts)
+- Built with Vite + Solid.js
 
-- **ESLint**: Flat config with TypeScript support
-- **Prettier**: Auto-formatting integrated with ESLint
-- **Import Sorting**: Via `simple-import-sort` plugin
+**Worker** (`packages/worker/`):
+- `src/index.ts` - Cloudflare Worker entry point (routing, CORS, health check)
+- `src/claude-proxy.ts` - Claude API integration with multi-modal prompts
+- `src/rate-limiter.ts` - KV-based token budget tracking
+- Deployed to Cloudflare Workers
+
+**Shared** (`packages/shared/`):
+- `src/types.ts` - TypeScript types for API contracts
+- Built with tsup (dual CJS/ESM)
+- Required dependency for both frontend and worker
+
+### Implementation Status
+
+**✅ Completed**:
+- Worker API proxy with rate limiting
+- Claude API integration with structured prompts
+- All UI components (Solid.js)
+- Shared TypeScript types
+- Budget tracking system
+
+**❌ Missing (Critical)**:
+- `packages/frontend/src/lib/webrtc.ts` - CameraCapture class
+- `packages/frontend/src/lib/speech.ts` - SpeechTranscription class
+- `packages/frontend/src/lib/api-client.ts` - ObserverAPIClient class
+
+**Note**: The UI components are fully implemented but reference missing lib files. The app won't run until these browser API wrappers are created.
 
 ## Implementation Guidance
 
-### Privacy-First Design
+### Missing Library Files
 
-**Critical Requirements** (from docs/4-ai-booth-observer.md):
+When implementing the 3 missing lib files, follow these specifications:
 
-- Never store video frames or audio recordings
-- Real-time analysis only - data processed and discarded
-- Clear visual indicators when system is active
-- Privacy signage requirements documented
-- Opt-out mechanism for visitors
+**`packages/frontend/src/lib/webrtc.ts`** - CameraCapture class:
+- Methods: `start()`, `stop()`, `captureFrame(quality: number)`, `getVideoElement()`, `getStatus()`
+- Uses `navigator.mediaDevices.getUserMedia()` for camera access
+- Creates `<video>` element for live preview
+- Uses Canvas API to capture frames as base64 JPEG
+- Returns status objects with `{active: boolean, error?: string}`
 
-### API Integration
+**`packages/frontend/src/lib/speech.ts`** - SpeechTranscription class:
+- Export `TranscriptSegment` type: `{text: string, timestamp: Date, isFinal: boolean}`
+- Methods: `start(callback)`, `stop()`, `getRecentTranscript(seconds)`, `getStatus()`
+- Uses Web Speech API (`webkitSpeechRecognition` for Chrome/Edge)
+- Maintains rolling transcript buffer (last 60-120 seconds)
+- Continuous recognition with interim results
 
-**Claude API Setup**:
+**`packages/frontend/src/lib/api-client.ts`** - ObserverAPIClient class:
+- Methods: `observe(imageBase64, transcript)`, `getBudgetStatus()`, `healthCheck()`
+- Reads `VITE_WORKER_ENDPOINT` from environment
+- Returns typed responses matching `@ai-booth-observer/shared` types
+- Error handling with meaningful messages
 
-- Model: `claude-3-haiku-20240307` (cost-effective)
-- Multi-modal input: base64 images + text transcripts
-- Rate limiting: Maximum 1 call per 30 seconds
-- Cost tracking: ~$0.0008 per analysis (~$0.12 for full event)
-- Error handling: graceful fallbacks, retry logic
+### Claude API Details
 
-### Prompt Engineering
+**Model**: `claude-3-haiku-20240307` (see `packages/worker/src/claude-proxy.ts:54`)
 
-System uses structured prompts requesting:
+**Prompt Structure** (see `claude-proxy.ts:9-50`):
+- System prompt: Exhibition assistant context
+- User prompt: Timestamp + visual input + audio transcript
+- Requested JSON format: `{scene, audio, engagement, recommendation, metrics}`
 
-1. Scene description (visual analysis)
-2. Conversation analysis (audio transcript)
-3. Engagement level assessment
-4. Actionable recommendations
+**Pricing** (see `claude-proxy.ts:118-123`):
+- Input: $0.25 per million tokens
+- Output: $1.25 per million tokens
+- Typical cost: ~$0.0008 per observation
 
-Expected JSON response format with metrics (people_count, questions_detected, energy level).
+### Environment Configuration
 
-### Browser Requirements
+**Worker** (`packages/worker/.dev.vars`):
+```bash
+ANTHROPIC_API_KEY=sk-ant-...
+```
 
-- **WebRTC API**: Camera/microphone access
-- **Web Speech API**: Real-time transcription (fallback for unsupported browsers)
-- **Fetch API**: Claude API integration
-- **Canvas API**: Frame capture and base64 conversion
+**Worker** (`packages/worker/wrangler.toml`):
+```toml
+MAX_TOKENS_PER_DAY = "1000000"  # 1M tokens ~= $3/day
+```
 
-### UI/UX Considerations
+**Frontend** (`packages/frontend/.env`):
+```bash
+VITE_WORKER_ENDPOINT=http://localhost:8787  # Dev
+# VITE_WORKER_ENDPOINT=https://your-worker.workers.dev  # Prod
+```
 
-- Dashboard-style display (600x800px recommended)
-- Dark theme for readability
-- Real-time updates with smooth transitions
-- Visual indicators: engagement bars, status badges
-- Settings panel: capture frequency, audio/video toggles
-- Demo mode for offline testing
+### Privacy Requirements
 
-## Key Documentation Files
-
-- `docs/4-ai-booth-observer.md` - Complete 6-phase build guide (4-5 hours)
-- `docs/README.md` - Context on pre-built demos and presentation strategy
-- `STANDARDIZATION_GUIDE.md` - TypeScript library template standards (infrastructure only)
+**Critical constraints**:
+- Never call `localStorage.setItem()` with frames or audio
+- Never create `<audio>` or `<video>` recording elements
+- Discard frames immediately after base64 conversion
+- Transcript buffer limited to 60-120 seconds (see `SpeechTranscription.getRecentTranscript()`)
+- Privacy banner must be visible at all times (see `PrivacyBanner.tsx`)
 
 ## Development Workflow
 
-### Initial Setup
+### Local Development Setup
 
-The codebase is currently a TypeScript library template. Actual AI Booth Observer implementation should follow the build phases in `docs/4-ai-booth-observer.md`:
+1. **Install dependencies**:
+   ```bash
+   pnpm install
+   ```
 
-**Phase 1**: Webcam capture setup (45 min)
-**Phase 2**: Audio capture & transcription (60 min)
-**Phase 3**: Claude API integration (60 min)
-**Phase 4**: Prompt engineering (30 min)
-**Phase 5**: Real-time display UI (60 min)
-**Phase 6**: Polish & optimization (45 min)
+2. **Build shared types** (required first):
+   ```bash
+   pnpm --filter shared build
+   ```
 
-### Testing Strategy
+3. **Configure worker** (`packages/worker/.dev.vars`):
+   ```bash
+   ANTHROPIC_API_KEY=sk-ant-your-key-here
+   ```
 
-**Pre-Event Testing**:
+4. **Start both servers** (separate terminals):
+   ```bash
+   # Terminal 1 - Worker
+   pnpm --filter worker dev
 
-- Continuous operation test (30+ minutes)
-- Memory leak detection
-- Privacy compliance verification
-- API error recovery
-- Multi-browser compatibility
+   # Terminal 2 - Frontend
+   pnpm --filter frontend dev
+   ```
 
-**Cost Monitoring**:
+5. **Open browser**: http://localhost:3000
 
-- Token usage tracking
-- Budget alerts at thresholds
-- Pause functionality to conserve budget
+### Testing
+
+**Worker tests** (Vitest):
+```bash
+pnpm --filter worker test              # Run once
+pnpm --filter worker test -- --watch   # Watch mode
+```
+
+**Frontend testing**:
+- Manual browser testing required (WebRTC + Speech APIs)
+- Use Chrome or Edge (Web Speech API support)
+- Grant camera and microphone permissions
 
 ### Deployment
 
-Target: Static web hosting (GitHub Pages, Vercel, Netlify)
+**Worker** (Cloudflare Workers):
+```bash
+# Setup KV namespace (one-time)
+cd packages/worker
+wrangler kv:namespace create "USAGE_TRACKER"
+# Add ID to wrangler.toml
 
-**Requirements**:
+# Set secret (one-time)
+wrangler secret put ANTHROPIC_API_KEY
 
-- HTTPS required for camera/microphone permissions
-- Environment variable support for API key storage
-- Offline fallback mode for demos without connectivity
+# Deploy
+pnpm --filter worker deploy
+```
+
+**Frontend** (Cloudflare Pages):
+```bash
+# Build
+pnpm --filter shared build
+pnpm --filter frontend build
+
+# Deploy
+cd packages/frontend
+wrangler pages deploy dist
+
+# Set environment variable in Cloudflare Dashboard:
+# VITE_WORKER_ENDPOINT = https://your-worker.workers.dev
+```
+
+### Browser Requirements
+
+**Supported**: Chrome, Edge (Web Speech API required)
+**Not supported**: Firefox, Safari (no Web Speech API)
+**Required**: HTTPS for camera/microphone permissions (localhost OK for dev)

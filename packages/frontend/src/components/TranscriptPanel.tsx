@@ -1,4 +1,4 @@
-import { Component, createSignal, For, onCleanup, onMount } from "solid-js"
+import { Component, createSignal, createEffect, For, onCleanup, onMount } from "solid-js"
 import { SpeechTranscription, type TranscriptSegment } from "../lib/speech"
 import "./TranscriptPanel.css"
 
@@ -49,9 +49,11 @@ export const TranscriptPanel: Component<Props> = (props) => {
   }
 
   // Sync with parent's isActive prop
-  onMount(() => {
-    if (props.isActive) {
+  createEffect(() => {
+    if (props.isActive && !isActive()) {
       startSpeech()
+    } else if (!props.isActive && isActive()) {
+      stopSpeech()
     }
   })
 
