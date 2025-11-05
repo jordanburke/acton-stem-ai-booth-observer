@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react"
-import { Title, Text } from "@mantine/core"
+import { AppShell, Title, Text, Button, Modal, Grid, Stack } from "@mantine/core"
+import { useDisclosure } from "@mantine/hooks"
 import type { ObservationResponse, BudgetStatus } from "@ai-booth-observer/shared"
 import { ObserverAPIClient } from "./lib/api-client"
 import { CameraFeed } from "./components/CameraFeed"
@@ -10,6 +11,9 @@ import { PrivacyBanner } from "./components/PrivacyBanner"
 import "./App.css"
 
 const App: React.FC = () => {
+  // Privacy modal state
+  const [privacyOpened, { open: openPrivacy, close: closePrivacy }] = useDisclosure(false)
+
   // System state
   const [isActive, setIsActive] = useState(false)
   const [captureInterval, setCaptureInterval] = useState(30) // seconds
@@ -108,62 +112,61 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <Title order={1} className="app-title">
-          <span className="icon">🤖</span>
-          AI Booth Observer
-        </Title>
-        <Text className="app-subtitle">Live Multi-Modal Agentic AI System</Text>
-      </header>
-
-      <div className="app-container">
-        {/* Privacy Banner */}
-        <div className="privacy-section">
-          <PrivacyBanner />
-        </div>
-
-        {/* Control Panel */}
-        <div className="controls-section">
-          <ControlPanel
-            isActive={isActive}
-            onToggle={handleToggle}
-            budgetStatus={budgetStatus}
-            captureInterval={captureInterval}
-            onIntervalChange={setCaptureInterval}
-          />
-        </div>
-
-        {/* Error Display */}
-        {error && (
-          <div className="error-banner">
-            <span className="icon">⚠️</span>
-            <span>{error}</span>
+    <>
+      <AppShell header={{ height: 60 }} padding={0}>
+        <AppShell.Header className="app-header">
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: "100%", padding: "0 1rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+              <Title order={1} className="app-title">
+                <span className="icon">🤖</span>
+                AI Booth Observer
+              </Title>
+              <Text className="app-subtitle">Live Multi-Modal Agentic AI System</Text>
+            </div>
+            <Button variant="subtle" leftSection={<span>🔒</span>} onClick={openPrivacy}>
+              Privacy
+            </Button>
           </div>
-        )}
+        </AppShell.Header>
 
-        {/* Main Grid */}
-        <div className="main-grid">
-          {/* Left Column: Camera + Transcript */}
-          <div className="left-column">
-            <CameraFeed isActive={isActive} onCapture={handleCameraCapture} captureInterval={captureInterval} />
-            <TranscriptPanel isActive={isActive} onTranscript={handleTranscript} />
-          </div>
+        <AppShell.Main>
+          {/* Error Display */}
+          {error && (
+            <div className="error-banner">
+              <span className="icon">⚠️</span>
+              <span>{error}</span>
+            </div>
+          )}
 
-          {/* Right Column: Observations */}
-          <div className="right-column">
-            <ObservationLog observations={observations} isAnalyzing={isAnalyzing} />
-          </div>
-        </div>
+          <Grid h="calc(100vh - 60px)" gutter={0}>
+            {/* Left Column: Camera + Transcript + Controls (30%) */}
+            <Grid.Col span={4}>
+              <Stack h="100%" gap={0}>
+                <CameraFeed isActive={isActive} onCapture={handleCameraCapture} captureInterval={captureInterval} />
+                <TranscriptPanel isActive={isActive} onTranscript={handleTranscript} />
+                <ControlPanel
+                  isActive={isActive}
+                  onToggle={handleToggle}
+                  budgetStatus={budgetStatus}
+                  captureInterval={captureInterval}
+                  onIntervalChange={setCaptureInterval}
+                />
+              </Stack>
+            </Grid.Col>
 
-        {/* Footer */}
-        <footer className="app-footer">
-          <Text>
-            Built with React 19 + Cloudflare Workers + Claude AI • Privacy-First Design • Educational Demonstration
-          </Text>
-        </footer>
-      </div>
-    </div>
+            {/* Right Column: AI Observations (70%) */}
+            <Grid.Col span={8}>
+              <ObservationLog observations={observations} isAnalyzing={isAnalyzing} />
+            </Grid.Col>
+          </Grid>
+        </AppShell.Main>
+      </AppShell>
+
+      {/* Privacy Modal */}
+      <Modal opened={privacyOpened} onClose={closePrivacy} title="Privacy Notice" size="lg">
+        <PrivacyBanner hideHeader />
+      </Modal>
+    </>
   )
 }
 
