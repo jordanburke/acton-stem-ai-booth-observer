@@ -7,16 +7,43 @@
 }
 
 :root {
-  --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
-  --bg-tertiary: #334155;
-  --text-primary: #f1f5f9;
+  /* Enhanced Dark Background System */
+  --bg-primary: #0a0e1a;
+  --bg-secondary: #111827;
+  --bg-tertiary: #1a202e;
+  --bg-elevated: #242b3d;
+
+  /* Text Colors - Better Contrast */
+  --text-primary: #f8fafc;
   --text-secondary: #cbd5e1;
-  --accent-green: #10b981;
+  --text-tertiary: #94a3b8;
+
+  /* Accent Colors */
   --accent-blue: #3b82f6;
+  --accent-blue-dark: #2563eb;
+  --accent-blue-light: #60a5fa;
+  --accent-green: #10b981;
+  --accent-green-dark: #059669;
   --accent-orange: #f59e0b;
   --accent-red: #ef4444;
-  --border-color: #475569;
+
+  /* Borders with Opacity */
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --border-medium: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.15);
+
+  /* Shadows for Depth */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+
+  /* Spacing Scale */
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
 }
 
 body {
@@ -38,4 +65,23 @@ body {
 button {
   font-family: inherit;
   cursor: pointer;
+}
+
+/* Custom Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
 }

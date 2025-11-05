@@ -2,10 +2,11 @@
   height: 350px;
   flex-shrink: 0;
   background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-medium);
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  box-shadow: var(--shadow-sm);
 }
 
 .camera-header {
@@ -14,7 +15,7 @@
   align-items: center;
   padding: 0.5rem 0.75rem;
   background: var(--bg-tertiary);
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-medium);
   flex-shrink: 0;
 }
 
@@ -104,7 +105,7 @@
 .capture-info {
   padding: 0.5rem 0.75rem;
   background: var(--bg-tertiary);
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-medium);
   font-size: 0.75rem;
   color: var(--text-secondary);
   text-align: center;

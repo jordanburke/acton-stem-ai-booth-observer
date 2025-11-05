@@ -1,4 +1,5 @@
 import { Text, List, Title, Stack } from "@mantine/core"
+import { Lock } from "lucide-react"
 import "./PrivacyBanner.css"
 
 type Props = {
@@ -11,7 +12,7 @@ export const PrivacyBanner: React.FC<Props> = ({ hideHeader = false }) => {
       {!hideHeader && (
         <div className="privacy-header">
           <div className="privacy-title">
-            <span className="icon">🔒</span>
+            <Lock size={20} style={{ marginRight: "0.5rem" }} />
             <span>Privacy Notice</span>
           </div>
         </div>

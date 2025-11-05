@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import { AppShell, Title, Text, Button, Modal, Grid, Stack } from "@mantine/core"
 import { useDisclosure } from "@mantine/hooks"
+import { Bot, Lock, AlertTriangle } from "lucide-react"
 import type { ObservationResponse, BudgetStatus } from "@ai-booth-observer/shared"
 import { ObserverAPIClient } from "./lib/api-client"
 import { CameraFeed } from "./components/CameraFeed"
@@ -118,12 +119,12 @@ const App: React.FC = () => {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: "100%", padding: "0 1rem" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
               <Title order={1} className="app-title">
-                <span className="icon">🤖</span>
+                <Bot size={28} style={{ marginRight: "0.5rem" }} />
                 AI Booth Observer
               </Title>
               <Text className="app-subtitle">Live Multi-Modal Agentic AI System</Text>
             </div>
-            <Button variant="subtle" leftSection={<span>🔒</span>} onClick={openPrivacy}>
+            <Button variant="subtle" leftSection={<Lock size={16} />} onClick={openPrivacy}>
               Privacy
             </Button>
           </div>
@@ -133,17 +134,16 @@ const App: React.FC = () => {
           {/* Error Display */}
           {error && (
             <div className="error-banner">
-              <span className="icon">⚠️</span>
+              <AlertTriangle size={20} style={{ marginRight: "0.5rem" }} />
               <span>{error}</span>
             </div>
           )}
 
           <Grid h="calc(100vh - 60px)" gutter={0}>
-            {/* Left Column: Camera + Transcript + Controls (30%) */}
+            {/* Left Column: Camera + Controls (30%) */}
             <Grid.Col span={4}>
               <Stack h="100%" gap={0}>
                 <CameraFeed isActive={isActive} onCapture={handleCameraCapture} captureInterval={captureInterval} />
-                <TranscriptPanel isActive={isActive} onTranscript={handleTranscript} />
                 <ControlPanel
                   isActive={isActive}
                   onToggle={handleToggle}
@@ -154,9 +154,16 @@ const App: React.FC = () => {
               </Stack>
             </Grid.Col>
 
-            {/* Right Column: AI Observations (70%) */}
+            {/* Right Column: AI Observations (60%) + Transcript (40%) */}
             <Grid.Col span={8}>
-              <ObservationLog observations={observations} isAnalyzing={isAnalyzing} />
+              <Stack h="100%" gap={0}>
+                <div style={{ height: "60%", overflow: "hidden" }}>
+                  <ObservationLog observations={observations} isAnalyzing={isAnalyzing} />
+                </div>
+                <div style={{ height: "40%", overflow: "hidden" }}>
+                  <TranscriptPanel isActive={isActive} onTranscript={handleTranscript} />
+                </div>
+              </Stack>
             </Grid.Col>
           </Grid>
         </AppShell.Main>

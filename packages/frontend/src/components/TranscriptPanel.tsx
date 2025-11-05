@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react"
 import { Button, Badge, Text } from "@mantine/core"
+import { Mic, Circle, AlertTriangle } from "lucide-react"
 import { SpeechTranscription, type TranscriptSegment } from "../lib/speech"
 import "./TranscriptPanel.css"
 
@@ -81,18 +82,26 @@ export const TranscriptPanel: React.FC<Props> = ({ onTranscript, isActive }) => 
     <div className="transcript-panel">
       <div className="transcript-header">
         <div className="transcript-title">
-          <span className="icon">🎤</span>
+          <Mic size={18} style={{ marginRight: "0.5rem" }} />
           <span>Live Transcript</span>
         </div>
         <Badge color={isListening ? "red" : "gray"} variant="filled" className="listening-indicator">
-          {isListening ? "🔴 Listening" : "⚪ Idle"}
+          {isListening ? (
+            <>
+              <Circle size={8} fill="currentColor" style={{ marginRight: "0.25rem" }} /> Listening
+            </>
+          ) : (
+            <>
+              <Circle size={8} style={{ marginRight: "0.25rem" }} /> Idle
+            </>
+          )}
         </Badge>
       </div>
 
       <div className="transcript-content">
         {error && (
           <div className="error-message">
-            <span className="icon">⚠️</span>
+            <AlertTriangle size={48} className="icon" />
             <p>{error}</p>
             <Text className="help-text" size="sm">
               Speech recognition requires Chrome or Edge browser
@@ -103,7 +112,7 @@ export const TranscriptPanel: React.FC<Props> = ({ onTranscript, isActive }) => 
 
         {!isActive_ && !error && (
           <div className="inactive-message">
-            <span className="icon">🎙️</span>
+            <Mic size={48} className="icon" />
             <p>Microphone inactive</p>
           </div>
         )}

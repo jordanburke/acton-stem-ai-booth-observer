@@ -1,5 +1,6 @@
 import React from "react"
 import { Badge, Paper, Text } from "@mantine/core"
+import { Bot, Eye, Mic, BarChart3, Lightbulb, Users, HelpCircle, Zap } from "lucide-react"
 import type { ObservationResponse } from "@ai-booth-observer/shared"
 import "./ObservationLog.css"
 
@@ -41,7 +42,7 @@ export const ObservationLog: React.FC<Props> = ({ observations, isAnalyzing = fa
     <div className="observation-log">
       <div className="observation-header">
         <div className="observation-title">
-          <span className="icon">🤖</span>
+          <Bot size={18} style={{ marginRight: "0.5rem" }} />
           <span>AI Booth Observer</span>
         </div>
         {isAnalyzing && (
@@ -55,7 +56,7 @@ export const ObservationLog: React.FC<Props> = ({ observations, isAnalyzing = fa
       <div className="observation-content">
         {!latestObservation && !isAnalyzing && (
           <div className="empty-state">
-            <span className="icon">👁️</span>
+            <Eye size={64} className="icon" />
             <p>Waiting for first observation...</p>
             <p className="help-text">Start camera and microphone to begin analysis</p>
           </div>
@@ -69,7 +70,7 @@ export const ObservationLog: React.FC<Props> = ({ observations, isAnalyzing = fa
 
             <div className="observation-section">
               <div className="section-title">
-                <span className="icon">👁️</span>
+                <Eye size={16} style={{ marginRight: "0.5rem" }} />
                 <span>Scene</span>
               </div>
               <Text className="section-content">{latestObservation.scene}</Text>
@@ -77,7 +78,7 @@ export const ObservationLog: React.FC<Props> = ({ observations, isAnalyzing = fa
 
             <div className="observation-section">
               <div className="section-title">
-                <span className="icon">🎤</span>
+                <Mic size={16} style={{ marginRight: "0.5rem" }} />
                 <span>Conversation</span>
               </div>
               <Text className="section-content">{latestObservation.audio}</Text>
@@ -85,7 +86,7 @@ export const ObservationLog: React.FC<Props> = ({ observations, isAnalyzing = fa
 
             <div className="observation-section">
               <div className="section-title">
-                <span className="icon">📊</span>
+                <BarChart3 size={16} style={{ marginRight: "0.5rem" }} />
                 <span>Engagement</span>
               </div>
               <div className="engagement-display">
@@ -107,7 +108,7 @@ export const ObservationLog: React.FC<Props> = ({ observations, isAnalyzing = fa
 
             <div className="observation-section highlight">
               <div className="section-title">
-                <span className="icon">💡</span>
+                <Lightbulb size={16} style={{ marginRight: "0.5rem" }} />
                 <span>Recommendation</span>
               </div>
               <Text className="section-content recommendation">{latestObservation.recommendation}</Text>
@@ -115,7 +116,7 @@ export const ObservationLog: React.FC<Props> = ({ observations, isAnalyzing = fa
 
             <div className="metrics-grid">
               <Paper className="metric" p="md">
-                <span className="metric-icon">👥</span>
+                <Users size={24} className="metric-icon" />
                 <Text className="metric-value" size="xl" fw={700}>
                   {latestObservation.metrics.peopleCount}
                 </Text>
@@ -124,7 +125,7 @@ export const ObservationLog: React.FC<Props> = ({ observations, isAnalyzing = fa
                 </Text>
               </Paper>
               <Paper className="metric" p="md">
-                <span className="metric-icon">❓</span>
+                <HelpCircle size={24} className="metric-icon" />
                 <Text className="metric-value" size="xl" fw={700}>
                   {latestObservation.metrics.questionsDetected}
                 </Text>
@@ -133,7 +134,7 @@ export const ObservationLog: React.FC<Props> = ({ observations, isAnalyzing = fa
                 </Text>
               </Paper>
               <Paper className="metric" p="md">
-                <span className="metric-icon">⚡</span>
+                <Zap size={24} className="metric-icon" />
                 <Text className="metric-value" size="xl" fw={700}>
                   {latestObservation.metrics.energy}
                 </Text>

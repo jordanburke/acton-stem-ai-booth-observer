@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react"
 import { Button, Badge } from "@mantine/core"
+import { Video, Camera, AlertTriangle } from "lucide-react"
 import { CameraCapture } from "../lib/webrtc"
 import "./CameraFeed.css"
 
@@ -83,7 +84,7 @@ export const CameraFeed: React.FC<Props> = ({ onCapture, captureInterval = 30, i
     <div className="camera-feed">
       <div className="camera-header">
         <div className="camera-title">
-          <span className="icon">📹</span>
+          <Video size={18} style={{ marginRight: "0.5rem" }} />
           <span>Camera Feed</span>
         </div>
         <Badge color={isActive_ ? "green" : "gray"} variant="filled" className="status-indicator">
@@ -94,14 +95,14 @@ export const CameraFeed: React.FC<Props> = ({ onCapture, captureInterval = 30, i
       <div className="camera-preview" ref={videoRef}>
         {error && (
           <div className="error-message">
-            <span className="icon">⚠️</span>
+            <AlertTriangle size={48} className="icon" />
             <p>{error}</p>
             <Button onClick={startCamera}>Retry</Button>
           </div>
         )}
         {!isActive_ && !error && (
           <div className="inactive-message">
-            <span className="icon">📷</span>
+            <Camera size={48} className="icon" />
             <p>Camera inactive</p>
           </div>
         )}

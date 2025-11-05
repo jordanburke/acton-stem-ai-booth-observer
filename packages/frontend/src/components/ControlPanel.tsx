@@ -1,5 +1,6 @@
 import React from "react"
 import { Button, Slider, Text, Progress, Paper } from "@mantine/core"
+import { Settings, Pause, Play, Video, Mic } from "lucide-react"
 import type { BudgetStatus } from "@ai-booth-observer/shared"
 import { CameraCapture } from "../lib/webrtc"
 import { SpeechTranscription } from "../lib/speech"
@@ -33,7 +34,7 @@ export const ControlPanel: React.FC<Props> = ({
     <div className="control-panel">
       <div className="control-header">
         <div className="control-title">
-          <span className="icon">⚙️</span>
+          <Settings size={18} style={{ marginRight: "0.5rem" }} />
           <span>Control Panel</span>
         </div>
       </div>
@@ -54,8 +55,9 @@ export const ControlPanel: React.FC<Props> = ({
               className={`toggle-button ${isActive ? "active" : ""}`}
               onClick={() => onToggle(!isActive)}
               color={isActive ? "orange" : "blue"}
+              leftSection={isActive ? <Pause size={16} /> : <Play size={16} />}
             >
-              {isActive ? "⏸ Pause" : "▶ Start"}
+              {isActive ? "Pause" : "Start"}
             </Button>
           </div>
         </div>
@@ -136,13 +138,13 @@ export const ControlPanel: React.FC<Props> = ({
         {/* System Info */}
         <div className="control-section info-section">
           <div className="info-item">
-            <span className="info-icon">📹</span>
+            <Video size={18} className="info-icon" />
             <Text className="info-text" size="sm">
               Camera: {CameraCapture.isSupported() ? "✓ Supported" : "✗ Not Supported"}
             </Text>
           </div>
           <div className="info-item">
-            <span className="info-icon">🎤</span>
+            <Mic size={18} className="info-icon" />
             <Text className="info-text" size="sm">
               Speech: {SpeechTranscription.isSupported() ? "✓ Supported" : "✗ Not Supported"}
             </Text>

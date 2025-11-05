@@ -1,7 +1,7 @@
 .observation-log {
   height: 100%;
   background: var(--bg-secondary);
-  border-left: 1px solid var(--border-color);
+  border-left: 1px solid var(--border-medium);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -13,8 +13,9 @@
   align-items: center;
   padding: 0.5rem 0.75rem;
   background: var(--bg-tertiary);
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-medium);
   flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
 }
 
 .observation-title {
@@ -90,7 +91,7 @@
   color: var(--text-secondary);
   font-size: 0.75rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .observation-section {
@@ -167,6 +168,7 @@
   padding: 1rem;
   background: var(--bg-tertiary);
   border-radius: 8px;
+  border: 1px solid var(--border-subtle);
 }
 
 .metric {
@@ -175,6 +177,13 @@
   align-items: center;
   gap: 0.25rem;
   text-align: center;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.metric:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .metric-icon {
@@ -201,11 +210,11 @@
   font-size: 0.75rem;
   color: var(--text-secondary);
   padding-top: 0.75rem;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-subtle);
 }
 
 .history-section {
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-medium);
   background: var(--bg-tertiary);
 }
 

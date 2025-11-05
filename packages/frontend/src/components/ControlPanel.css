@@ -7,12 +7,13 @@
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
+  box-shadow: var(--shadow-sm);
 }
 
 .control-header {
   padding: 0.5rem 0.75rem;
   background: var(--bg-tertiary);
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-medium);
   flex-shrink: 0;
 }
 
