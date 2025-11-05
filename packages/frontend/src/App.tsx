@@ -31,7 +31,7 @@ const App: React.FC = () => {
   const handleCameraCapture = (base64: string) => {
     console.log("Camera captured frame", base64.substring(0, 50) + "...")
     setLatestImage(base64)
-    triggerObservation()
+    triggerObservation(base64)
   }
 
   // Handle transcript update
@@ -41,11 +41,11 @@ const App: React.FC = () => {
   }
 
   // Trigger observation when we have both image and transcript
-  const triggerObservation = async () => {
-    const image = latestImage
+  const triggerObservation = async (image?: string) => {
+    const imageToUse = image || latestImage
     const transcript = latestTranscript || "No speech detected yet"
 
-    if (!image || isAnalyzing) {
+    if (!imageToUse || isAnalyzing) {
       return
     }
 
@@ -54,7 +54,7 @@ const App: React.FC = () => {
 
     try {
       console.log("Sending observation request...")
-      const response = await apiClientRef.current.observe(image, transcript)
+      const response = await apiClientRef.current.observe(imageToUse, transcript)
       console.log("Observation received:", response)
 
       // Add to observations list

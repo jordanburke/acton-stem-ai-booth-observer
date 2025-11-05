@@ -15,6 +15,7 @@
   "scripts": {
     "dev": "pnpm --filter frontend dev",
     "dev:worker": "pnpm --filter worker dev",
+    "dev:all": "concurrently \"pnpm --filter worker dev\" \"pnpm --filter frontend dev\" --names \"worker,frontend\" --prefix-colors \"blue,magenta\"",
     "build": "pnpm -r build",
     "test": "pnpm -r test",
     "format": "prettier --write .",
@@ -25,6 +26,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.19.0",
+    "concurrently": "^9.2.1",
     "prettier": "^3.6.2",
     "typescript": "^5.9.3"
   },
