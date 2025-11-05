@@ -1,0 +1,4 @@
+# Local development environment variables
+# Copy this to .dev.vars and add your actual API key
+
+ANTHROPIC_API_KEY=sk-ant-api03-...

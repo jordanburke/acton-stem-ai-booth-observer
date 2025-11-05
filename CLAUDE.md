@@ -4,95 +4,152 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a TypeScript library template designed to be cloned/forked for creating new npm packages. It provides standardized build scripts, modern tooling, and dual module format support (CommonJS + ES modules).
+**AI Booth Observer** - A live multi-modal agentic AI system for STEM exhibition booths. Uses webcam and microphone to analyze booth interactions in real-time, providing insights and recommendations via Claude Haiku API.
 
-**Template Usage**: See STANDARDIZATION_GUIDE.md for instructions on applying this pattern to other TypeScript projects.
+**Purpose**: Educational demonstration showing true agentic AI capabilities - sensing, analyzing, and acting autonomously.
+
+**Key Documentation**: See `docs/4-ai-booth-observer.md` for complete build guide and `docs/README.md` for context on the broader demo suite.
 
 ## Development Commands
 
 ### Pre-Checkin Command
 
-- `pnpm validate` - **Main command**: Format, lint, test, and build everything for checkin
+- `pnpm validate` - Format, lint, test, and build everything
 
-### Formatting
+### Core Development
 
-- `pnpm format` - Format code with Prettier (write mode)
-- `pnpm format:check` - Check Prettier formatting without writing
-
-### Linting
-
-- `pnpm lint` - Fix ESLint issues (write mode)
-- `pnpm lint:check` - Check ESLint issues without fixing
-
-### Testing
-
+- `pnpm dev` - Development build with watch mode
 - `pnpm test` - Run tests once
 - `pnpm test:watch` - Run tests in watch mode
-- `pnpm test:coverage` - Run tests with coverage report
-- `pnpm test:ui` - Launch Vitest UI for interactive testing
+- `pnpm test:ui` - Launch Vitest UI
+- `pnpm format` - Format code with Prettier
+- `pnpm lint` - Fix ESLint issues
+- `pnpm build` - Production build
 
-### Building
+## Project Architecture
 
-- `pnpm build` - Production build (outputs to `dist/`)
-- `pnpm build:watch` - Watch mode build
-- `pnpm dev` - Development build with watch mode (alias for build:watch)
+### Application Type
 
-### Publishing
+**Web Application** with TypeScript foundation but focused on browser-based multi-modal AI interaction.
 
-- `prepublishOnly` - Automatically runs `pnpm validate` before publishing
+**Core Components (to be built per docs/4-ai-booth-observer.md)**:
 
-### Type Checking
-
-- `pnpm ts-types` - Check TypeScript types with tsc
-
-## Architecture
+1. **Webcam Capture System** - Browser WebRTC API for video frame capture (30-60s intervals)
+2. **Audio Capture & Transcription** - Web Speech API for real-time conversation analysis
+3. **Claude API Integration** - Multi-modal API calls combining vision + text
+4. **Real-time Display UI** - Live analysis dashboard showing scene, audio, engagement, recommendations
+5. **Privacy & Cost Management** - No recording, rate limiting, budget tracking
 
 ### Build System
 
-- **tsup**: Primary build tool configured in `tsup.config.ts`
-- **Dual Output Directories**:
-  - `lib/` - Development builds (NODE_ENV !== "production", used during `pnpm dev`)
-  - `dist/` - Production builds (NODE_ENV === "production", used for publishing)
-- **Format Support**: Generates both CommonJS (`.js`) and ES modules (`.mjs`)
-- **TypeScript**: Auto-generates `.d.ts` declaration files for both formats
-- **Environment-Based Behavior**:
-  - Production: minified, bundled, no watch
-  - Development: source maps, watch mode, faster builds
+- **tsup**: Configured for dual output (CommonJS `.js` + ES modules `.mjs`)
+- **Output Directories**:
+  - `lib/` - Development builds (NODE_ENV !== "production")
+  - `dist/` - Production builds (for deployment)
+- **TypeScript**: `.d.ts` declaration files auto-generated
 
 ### Testing Framework
 
 - **Vitest**: Modern test runner with hot reload and coverage
+- **Coverage**: v8 provider with text/json/html reports
 - **Configuration**: `vitest.config.ts` with Node.js environment
-- **Coverage**: Uses v8 provider with text/json/html reports
 
-### Code Quality Tools
+### Code Quality
 
-- **ESLint**: Flat config setup in `eslint.config.mjs` with TypeScript support
-- **Prettier**: Integrated with ESLint for consistent formatting
-- **Import Sorting**: Automatic import organization via `simple-import-sort`
+- **ESLint**: Flat config with TypeScript support
+- **Prettier**: Auto-formatting integrated with ESLint
+- **Import Sorting**: Via `simple-import-sort` plugin
 
-### Package Configuration
+## Implementation Guidance
 
-- **Entry Points**: Main source in `src/index.ts`, builds all files in `src/**/*.ts`
-- **Exports**: Supports both `require()` and `import` with proper type definitions
-- **Publishing**:
-  - Configured for npm with public access
-  - Both `lib/` and `dist/` directories are published (see package.json "files" field)
-  - `prepublishOnly` hook ensures full validation before publish
+### Privacy-First Design
 
-### TypeScript Configuration
+**Critical Requirements** (from docs/4-ai-booth-observer.md):
 
-- **Strict Mode**: Enabled with some pragmatic exceptions:
-  - `noImplicitAny: false` - Allows implicit any for flexibility
-  - `strictPropertyInitialization: false` - Relaxed for constructor properties
-- **Target**: ESNext for modern JavaScript features
-- **Output**: TypeScript only emits declaration files; tsup handles transpilation
+- Never store video frames or audio recordings
+- Real-time analysis only - data processed and discarded
+- Clear visual indicators when system is active
+- Privacy signage requirements documented
+- Opt-out mechanism for visitors
 
-## Key Files
+### API Integration
 
-- `src/index.ts` - Main library entry point
-- `test/*.spec.ts` - Test files using Vitest
-- `tsup.config.ts` - Build configuration with environment-based settings (line 3 checks NODE_ENV)
-- `vitest.config.ts` - Test configuration with coverage settings
-- `eslint.config.mjs` - Linting rules and TypeScript integration
-- `STANDARDIZATION_GUIDE.md` - Instructions for applying this pattern to other projects
+**Claude API Setup**:
+
+- Model: `claude-3-haiku-20240307` (cost-effective)
+- Multi-modal input: base64 images + text transcripts
+- Rate limiting: Maximum 1 call per 30 seconds
+- Cost tracking: ~$0.0008 per analysis (~$0.12 for full event)
+- Error handling: graceful fallbacks, retry logic
+
+### Prompt Engineering
+
+System uses structured prompts requesting:
+
+1. Scene description (visual analysis)
+2. Conversation analysis (audio transcript)
+3. Engagement level assessment
+4. Actionable recommendations
+
+Expected JSON response format with metrics (people_count, questions_detected, energy level).
+
+### Browser Requirements
+
+- **WebRTC API**: Camera/microphone access
+- **Web Speech API**: Real-time transcription (fallback for unsupported browsers)
+- **Fetch API**: Claude API integration
+- **Canvas API**: Frame capture and base64 conversion
+
+### UI/UX Considerations
+
+- Dashboard-style display (600x800px recommended)
+- Dark theme for readability
+- Real-time updates with smooth transitions
+- Visual indicators: engagement bars, status badges
+- Settings panel: capture frequency, audio/video toggles
+- Demo mode for offline testing
+
+## Key Documentation Files
+
+- `docs/4-ai-booth-observer.md` - Complete 6-phase build guide (4-5 hours)
+- `docs/README.md` - Context on pre-built demos and presentation strategy
+- `STANDARDIZATION_GUIDE.md` - TypeScript library template standards (infrastructure only)
+
+## Development Workflow
+
+### Initial Setup
+
+The codebase is currently a TypeScript library template. Actual AI Booth Observer implementation should follow the build phases in `docs/4-ai-booth-observer.md`:
+
+**Phase 1**: Webcam capture setup (45 min)
+**Phase 2**: Audio capture & transcription (60 min)
+**Phase 3**: Claude API integration (60 min)
+**Phase 4**: Prompt engineering (30 min)
+**Phase 5**: Real-time display UI (60 min)
+**Phase 6**: Polish & optimization (45 min)
+
+### Testing Strategy
+
+**Pre-Event Testing**:
+
+- Continuous operation test (30+ minutes)
+- Memory leak detection
+- Privacy compliance verification
+- API error recovery
+- Multi-browser compatibility
+
+**Cost Monitoring**:
+
+- Token usage tracking
+- Budget alerts at thresholds
+- Pause functionality to conserve budget
+
+### Deployment
+
+Target: Static web hosting (GitHub Pages, Vercel, Netlify)
+
+**Requirements**:
+
+- HTTPS required for camera/microphone permissions
+- Environment variable support for API key storage
+- Offline fallback mode for demos without connectivity

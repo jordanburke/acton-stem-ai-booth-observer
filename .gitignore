@@ -135,3 +135,13 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
+# Cloudflare Worker local development
+.dev.vars
+.wrangler/
+
+# Frontend build output
+packages/frontend/dist/
+
+# Worker build output
+packages/worker/dist/
+

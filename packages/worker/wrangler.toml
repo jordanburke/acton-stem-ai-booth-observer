@@ -1,0 +1,17 @@
+name = "ai-booth-observer-worker"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+
+# KV namespace for rate limiting and cost tracking
+# Run: wrangler kv:namespace create "USAGE_TRACKER"
+# Then add the ID below
+# [[kv_namespaces]]
+# binding = "USAGE_TRACKER"
+# id = "your-namespace-id-here"
+
+[vars]
+# Public configuration (non-sensitive)
+MAX_TOKENS_PER_DAY = "1000000"  # 1M tokens ~= $3/day for Haiku
+CAPTURE_INTERVAL_SECONDS = "30"
+
+# Note: ANTHROPIC_API_KEY should be set via: wrangler secret put ANTHROPIC_API_KEY
