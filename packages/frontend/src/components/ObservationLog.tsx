@@ -1,4 +1,5 @@
-import { Component, For } from "solid-js"
+import React from "react"
+import { Badge, Paper, Text } from "@mantine/core"
 import type { ObservationResponse } from "@ai-booth-observer/shared"
 import "./ObservationLog.css"
 
@@ -7,8 +8,8 @@ type Props = {
   isAnalyzing?: boolean
 }
 
-export const ObservationLog: Component<Props> = (props) => {
-  const getEngagementColor = (level: string) => {
+export const ObservationLog: React.FC<Props> = ({ observations, isAnalyzing = false }) => {
+  const getEngagementColor = (level: string): string => {
     switch (level) {
       case "high":
         return "var(--accent-green)"
@@ -21,7 +22,7 @@ export const ObservationLog: Component<Props> = (props) => {
     }
   }
 
-  const getEngagementBarWidth = (level: string) => {
+  const getEngagementBarWidth = (level: string): string => {
     switch (level) {
       case "high":
         return "90%"
@@ -34,128 +35,140 @@ export const ObservationLog: Component<Props> = (props) => {
     }
   }
 
-  const latestObservation = () => {
-    const obs = props.observations
-    return obs.length > 0 ? obs[obs.length - 1] : null
-  }
+  const latestObservation = observations.length > 0 ? observations[observations.length - 1] : null
 
   return (
-    <div class="observation-log">
-      <div class="observation-header">
-        <div class="observation-title">
-          <span class="icon">🤖</span>
+    <div className="observation-log">
+      <div className="observation-header">
+        <div className="observation-title">
+          <span className="icon">🤖</span>
           <span>AI Booth Observer</span>
         </div>
-        {props.isAnalyzing && (
-          <div class="analyzing-indicator">
-            <span class="spinner"></span>
+        {isAnalyzing && (
+          <div className="analyzing-indicator">
+            <span className="spinner"></span>
             <span>Analyzing...</span>
           </div>
         )}
       </div>
 
-      <div class="observation-content">
-        {!latestObservation() && !props.isAnalyzing && (
-          <div class="empty-state">
-            <span class="icon">👁️</span>
+      <div className="observation-content">
+        {!latestObservation && !isAnalyzing && (
+          <div className="empty-state">
+            <span className="icon">👁️</span>
             <p>Waiting for first observation...</p>
-            <p class="help-text">Start camera and microphone to begin analysis</p>
+            <p className="help-text">Start camera and microphone to begin analysis</p>
           </div>
         )}
 
-        {latestObservation() && (
-          <div class="latest-observation">
-            <div class="observation-timestamp">
-              Last updated: {new Date(latestObservation()!.timestamp).toLocaleTimeString()}
+        {latestObservation && (
+          <div className="latest-observation">
+            <div className="observation-timestamp">
+              Last updated: {new Date(latestObservation.timestamp).toLocaleTimeString()}
             </div>
 
-            <div class="observation-section">
-              <div class="section-title">
-                <span class="icon">👁️</span>
+            <div className="observation-section">
+              <div className="section-title">
+                <span className="icon">👁️</span>
                 <span>Scene</span>
               </div>
-              <p class="section-content">{latestObservation()!.scene}</p>
+              <Text className="section-content">{latestObservation.scene}</Text>
             </div>
 
-            <div class="observation-section">
-              <div class="section-title">
-                <span class="icon">🎤</span>
+            <div className="observation-section">
+              <div className="section-title">
+                <span className="icon">🎤</span>
                 <span>Conversation</span>
               </div>
-              <p class="section-content">{latestObservation()!.audio}</p>
+              <Text className="section-content">{latestObservation.audio}</Text>
             </div>
 
-            <div class="observation-section">
-              <div class="section-title">
-                <span class="icon">📊</span>
+            <div className="observation-section">
+              <div className="section-title">
+                <span className="icon">📊</span>
                 <span>Engagement</span>
               </div>
-              <div class="engagement-display">
-                <div class="engagement-bar-container">
+              <div className="engagement-display">
+                <div className="engagement-bar-container">
                   <div
-                    class="engagement-bar"
+                    className="engagement-bar"
                     style={{
-                      width: getEngagementBarWidth(latestObservation()!.engagement.level),
-                      "background-color": getEngagementColor(latestObservation()!.engagement.level),
+                      width: getEngagementBarWidth(latestObservation.engagement.level),
+                      backgroundColor: getEngagementColor(latestObservation.engagement.level),
                     }}
                   />
                 </div>
-                <div class="engagement-level">{latestObservation()!.engagement.level.toUpperCase()}</div>
+                <Badge className="engagement-level" variant="filled">
+                  {latestObservation.engagement.level.toUpperCase()}
+                </Badge>
               </div>
-              <p class="section-content reason">{latestObservation()!.engagement.reason}</p>
+              <Text className="section-content reason">{latestObservation.engagement.reason}</Text>
             </div>
 
-            <div class="observation-section highlight">
-              <div class="section-title">
-                <span class="icon">💡</span>
+            <div className="observation-section highlight">
+              <div className="section-title">
+                <span className="icon">💡</span>
                 <span>Recommendation</span>
               </div>
-              <p class="section-content recommendation">{latestObservation()!.recommendation}</p>
+              <Text className="section-content recommendation">{latestObservation.recommendation}</Text>
             </div>
 
-            <div class="metrics-grid">
-              <div class="metric">
-                <span class="metric-icon">👥</span>
-                <span class="metric-value">{latestObservation()!.metrics.peopleCount}</span>
-                <span class="metric-label">People</span>
-              </div>
-              <div class="metric">
-                <span class="metric-icon">❓</span>
-                <span class="metric-value">{latestObservation()!.metrics.questionsDetected}</span>
-                <span class="metric-label">Questions</span>
-              </div>
-              <div class="metric">
-                <span class="metric-icon">⚡</span>
-                <span class="metric-value">{latestObservation()!.metrics.energy}</span>
-                <span class="metric-label">Energy</span>
-              </div>
+            <div className="metrics-grid">
+              <Paper className="metric" p="md">
+                <span className="metric-icon">👥</span>
+                <Text className="metric-value" size="xl" fw={700}>
+                  {latestObservation.metrics.peopleCount}
+                </Text>
+                <Text className="metric-label" size="sm">
+                  People
+                </Text>
+              </Paper>
+              <Paper className="metric" p="md">
+                <span className="metric-icon">❓</span>
+                <Text className="metric-value" size="xl" fw={700}>
+                  {latestObservation.metrics.questionsDetected}
+                </Text>
+                <Text className="metric-label" size="sm">
+                  Questions
+                </Text>
+              </Paper>
+              <Paper className="metric" p="md">
+                <span className="metric-icon">⚡</span>
+                <Text className="metric-value" size="xl" fw={700}>
+                  {latestObservation.metrics.energy}
+                </Text>
+                <Text className="metric-label" size="sm">
+                  Energy
+                </Text>
+              </Paper>
             </div>
 
-            <div class="cost-info">
-              <span>Tokens: {latestObservation()!.tokensUsed}</span>
+            <div className="cost-info">
+              <span>Tokens: {latestObservation.tokensUsed}</span>
               <span>•</span>
-              <span>Cost: ${latestObservation()!.costEstimate.toFixed(4)}</span>
+              <span>Cost: ${latestObservation.costEstimate.toFixed(4)}</span>
             </div>
           </div>
         )}
       </div>
 
-      {props.observations.length > 1 && (
-        <details class="history-section">
-          <summary>History ({props.observations.length - 1} previous)</summary>
-          <div class="history-list">
-            <For each={props.observations.slice(0, -1).reverse()}>
-              {(obs) => (
-                <div class="history-item">
-                  <div class="history-timestamp">{new Date(obs.timestamp).toLocaleTimeString()}</div>
-                  <div class="history-summary">
+      {observations.length > 1 && (
+        <details className="history-section">
+          <summary>History ({observations.length - 1} previous)</summary>
+          <div className="history-list">
+            {observations
+              .slice(0, -1)
+              .reverse()
+              .map((obs) => (
+                <div key={obs.timestamp} className="history-item">
+                  <div className="history-timestamp">{new Date(obs.timestamp).toLocaleTimeString()}</div>
+                  <div className="history-summary">
                     <strong>Engagement:</strong> {obs.engagement.level} • <strong>People:</strong>{" "}
                     {obs.metrics.peopleCount}
                   </div>
-                  <div class="history-recommendation">{obs.recommendation}</div>
+                  <div className="history-recommendation">{obs.recommendation}</div>
                 </div>
-              )}
-            </For>
+              ))}
           </div>
         </details>
       )}

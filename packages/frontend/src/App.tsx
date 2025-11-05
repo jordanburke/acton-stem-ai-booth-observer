@@ -1,4 +1,5 @@
-import { Component, createSignal, createEffect } from "solid-js"
+import { useState, useEffect, useRef } from "react"
+import { Title, Text } from "@mantine/core"
 import type { ObservationResponse, BudgetStatus } from "@ai-booth-observer/shared"
 import { ObserverAPIClient } from "./lib/api-client"
 import { CameraFeed } from "./components/CameraFeed"
@@ -8,23 +9,23 @@ import { ControlPanel } from "./components/ControlPanel"
 import { PrivacyBanner } from "./components/PrivacyBanner"
 import "./App.css"
 
-const App: Component = () => {
+const App: React.FC = () => {
   // System state
-  const [isActive, setIsActive] = createSignal(false)
-  const [captureInterval, setCaptureInterval] = createSignal(30) // seconds
+  const [isActive, setIsActive] = useState(false)
+  const [captureInterval, setCaptureInterval] = useState(30) // seconds
 
   // Data state
-  const [observations, setObservations] = createSignal<ObservationResponse[]>([])
-  const [budgetStatus, setBudgetStatus] = createSignal<BudgetStatus>()
-  const [isAnalyzing, setIsAnalyzing] = createSignal(false)
-  const [error, setError] = createSignal<string>()
+  const [observations, setObservations] = useState<ObservationResponse[]>([])
+  const [budgetStatus, setBudgetStatus] = useState<BudgetStatus>()
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [error, setError] = useState<string>()
 
   // Latest captures
-  const [latestImage, setLatestImage] = createSignal<string>()
-  const [latestTranscript, setLatestTranscript] = createSignal<string>()
+  const [latestImage, setLatestImage] = useState<string>()
+  const [latestTranscript, setLatestTranscript] = useState<string>()
 
   // API client
-  const apiClient = new ObserverAPIClient()
+  const apiClientRef = useRef(new ObserverAPIClient())
 
   // Handle camera capture
   const handleCameraCapture = (base64: string) => {
@@ -41,10 +42,10 @@ const App: Component = () => {
 
   // Trigger observation when we have both image and transcript
   const triggerObservation = async () => {
-    const image = latestImage()
-    const transcript = latestTranscript() || "No speech detected yet"
+    const image = latestImage
+    const transcript = latestTranscript || "No speech detected yet"
 
-    if (!image || isAnalyzing()) {
+    if (!image || isAnalyzing) {
       return
     }
 
@@ -53,11 +54,11 @@ const App: Component = () => {
 
     try {
       console.log("Sending observation request...")
-      const response = await apiClient.observe(image, transcript)
+      const response = await apiClientRef.current.observe(image, transcript)
       console.log("Observation received:", response)
 
       // Add to observations list
-      setObservations([...observations(), response])
+      setObservations((prev) => [...prev, response])
 
       // Update budget status
       await updateBudgetStatus()
@@ -73,7 +74,7 @@ const App: Component = () => {
   // Update budget status
   const updateBudgetStatus = async () => {
     try {
-      const status = await apiClient.getBudgetStatus()
+      const status = await apiClientRef.current.getBudgetStatus()
       setBudgetStatus(status)
     } catch (err) {
       console.error("Failed to get budget status:", err)
@@ -81,15 +82,19 @@ const App: Component = () => {
   }
 
   // Check worker health on mount
-  createEffect(async () => {
-    const healthy = await apiClient.healthCheck()
-    if (!healthy) {
-      console.warn("Worker health check failed - is the worker running?")
-    } else {
-      console.log("Worker health check passed")
-      await updateBudgetStatus()
+  useEffect(() => {
+    const checkHealth = async () => {
+      const healthy = await apiClientRef.current.healthCheck()
+      if (!healthy) {
+        console.warn("Worker health check failed - is the worker running?")
+      } else {
+        console.log("Worker health check passed")
+        await updateBudgetStatus()
+      }
     }
-  })
+
+    checkHealth()
+  }, [])
 
   // Handle system toggle
   const handleToggle = (active: boolean) => {
@@ -103,57 +108,59 @@ const App: Component = () => {
   }
 
   return (
-    <div class="app">
-      <header class="app-header">
-        <h1 class="app-title">
-          <span class="icon">🤖</span>
+    <div className="app">
+      <header className="app-header">
+        <Title order={1} className="app-title">
+          <span className="icon">🤖</span>
           AI Booth Observer
-        </h1>
-        <p class="app-subtitle">Live Multi-Modal Agentic AI System</p>
+        </Title>
+        <Text className="app-subtitle">Live Multi-Modal Agentic AI System</Text>
       </header>
 
-      <div class="app-container">
+      <div className="app-container">
         {/* Privacy Banner */}
-        <div class="privacy-section">
+        <div className="privacy-section">
           <PrivacyBanner />
         </div>
 
         {/* Control Panel */}
-        <div class="controls-section">
+        <div className="controls-section">
           <ControlPanel
-            isActive={isActive()}
+            isActive={isActive}
             onToggle={handleToggle}
-            budgetStatus={budgetStatus()}
-            captureInterval={captureInterval()}
+            budgetStatus={budgetStatus}
+            captureInterval={captureInterval}
             onIntervalChange={setCaptureInterval}
           />
         </div>
 
         {/* Error Display */}
-        {error() && (
-          <div class="error-banner">
-            <span class="icon">⚠️</span>
-            <span>{error()}</span>
+        {error && (
+          <div className="error-banner">
+            <span className="icon">⚠️</span>
+            <span>{error}</span>
           </div>
         )}
 
         {/* Main Grid */}
-        <div class="main-grid">
+        <div className="main-grid">
           {/* Left Column: Camera + Transcript */}
-          <div class="left-column">
-            <CameraFeed isActive={isActive()} onCapture={handleCameraCapture} captureInterval={captureInterval()} />
-            <TranscriptPanel isActive={isActive()} onTranscript={handleTranscript} />
+          <div className="left-column">
+            <CameraFeed isActive={isActive} onCapture={handleCameraCapture} captureInterval={captureInterval} />
+            <TranscriptPanel isActive={isActive} onTranscript={handleTranscript} />
           </div>
 
           {/* Right Column: Observations */}
-          <div class="right-column">
-            <ObservationLog observations={observations()} isAnalyzing={isAnalyzing()} />
+          <div className="right-column">
+            <ObservationLog observations={observations} isAnalyzing={isAnalyzing} />
           </div>
         </div>
 
         {/* Footer */}
-        <footer class="app-footer">
-          <p>Built with Solid.js + Cloudflare Workers + Claude AI • Privacy-First Design • Educational Demonstration</p>
+        <footer className="app-footer">
+          <Text>
+            Built with React 19 + Cloudflare Workers + Claude AI • Privacy-First Design • Educational Demonstration
+          </Text>
         </footer>
       </div>
     </div>

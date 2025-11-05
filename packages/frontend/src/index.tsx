@@ -1,6 +1,9 @@
-import { render } from "solid-js/web"
+import { StrictMode } from "react"
+import { createRoot } from "react-dom/client"
+import { MantineProvider } from "@mantine/core"
 import App from "./App"
 import "./index.css"
+import "@mantine/core/styles.css"
 
 const root = document.getElementById("root")
 
@@ -8,4 +11,10 @@ if (!root) {
   throw new Error("Root element not found")
 }
 
-render(() => <App />, root)
+createRoot(root).render(
+  <StrictMode>
+    <MantineProvider>
+      <App />
+    </MantineProvider>
+  </StrictMode>,
+)

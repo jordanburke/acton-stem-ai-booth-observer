@@ -1,4 +1,5 @@
-import { Component, createSignal, createEffect, For, onCleanup, onMount } from "solid-js"
+import React, { useState, useEffect, useRef } from "react"
+import { Button, Badge, Text } from "@mantine/core"
 import { SpeechTranscription, type TranscriptSegment } from "../lib/speech"
 import "./TranscriptPanel.css"
 
@@ -7,25 +8,26 @@ type Props = {
   isActive: boolean
 }
 
-export const TranscriptPanel: Component<Props> = (props) => {
-  const [speech] = createSignal(new SpeechTranscription())
-  const [isActive, setIsActive] = createSignal(false)
-  const [isListening, setIsListening] = createSignal(false)
-  const [error, setError] = createSignal<string>()
-  const [segments, setSegments] = createSignal<TranscriptSegment[]>([])
-  const [currentInterim, setCurrentInterim] = createSignal<string>()
+export const TranscriptPanel: React.FC<Props> = ({ onTranscript, isActive }) => {
+  const speechRef = useRef(new SpeechTranscription())
+
+  const [isActive_, setIsActive] = useState(false)
+  const [isListening, setIsListening] = useState(false)
+  const [error, setError] = useState<string>()
+  const [segments, setSegments] = useState<TranscriptSegment[]>([])
+  const [currentInterim, setCurrentInterim] = useState<string>()
 
   const startSpeech = () => {
-    const status = speech().start((segment) => {
+    const status = speechRef.current.start((segment) => {
       if (segment.isFinal) {
         // Add final segment to list
-        setSegments([...segments(), segment])
+        setSegments((prev) => [...prev, segment])
         setCurrentInterim(undefined)
 
         // Notify parent
-        if (props.onTranscript) {
-          const recentText = speech().getRecentTranscript(60)
-          props.onTranscript(recentText)
+        if (onTranscript) {
+          const recentText = speechRef.current.getRecentTranscript(60)
+          onTranscript(recentText)
         }
       } else {
         // Update interim result
@@ -43,85 +45,92 @@ export const TranscriptPanel: Component<Props> = (props) => {
   }
 
   const stopSpeech = () => {
-    speech().stop()
+    speechRef.current.stop()
     setIsActive(false)
     setIsListening(false)
   }
 
   // Sync with parent's isActive prop
-  createEffect(() => {
-    if (props.isActive && !isActive()) {
+  useEffect(() => {
+    if (isActive && !isActive_) {
       startSpeech()
-    } else if (!props.isActive && isActive()) {
+    } else if (!isActive && isActive_) {
       stopSpeech()
     }
-  })
+  }, [isActive, isActive_])
 
-  onCleanup(() => {
-    stopSpeech()
-  })
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopSpeech()
+    }
+  }, [])
 
   // Update listening state periodically
-  const checkListeningState = () => {
-    const status = speech().getStatus()
-    setIsListening(status.listening)
-  }
+  useEffect(() => {
+    const checkListeningState = () => {
+      const status = speechRef.current.getStatus()
+      setIsListening(status.listening)
+    }
 
-  onMount(() => {
     const intervalId = setInterval(checkListeningState, 500)
-    onCleanup(() => clearInterval(intervalId))
-  })
+    return () => clearInterval(intervalId)
+  }, [])
 
   return (
-    <div class="transcript-panel">
-      <div class="transcript-header">
-        <div class="transcript-title">
-          <span class="icon">🎤</span>
+    <div className="transcript-panel">
+      <div className="transcript-header">
+        <div className="transcript-title">
+          <span className="icon">🎤</span>
           <span>Live Transcript</span>
         </div>
-        <div class={`listening-indicator ${isListening() ? "listening" : "idle"}`}>
-          {isListening() ? "🔴 Listening" : "⚪ Idle"}
-        </div>
+        <Badge color={isListening ? "red" : "gray"} variant="filled" className="listening-indicator">
+          {isListening ? "🔴 Listening" : "⚪ Idle"}
+        </Badge>
       </div>
 
-      <div class="transcript-content">
-        {error() && (
-          <div class="error-message">
-            <span class="icon">⚠️</span>
-            <p>{error()}</p>
-            <p class="help-text">Speech recognition requires Chrome or Edge browser</p>
-            <button onClick={startSpeech}>Retry</button>
+      <div className="transcript-content">
+        {error && (
+          <div className="error-message">
+            <span className="icon">⚠️</span>
+            <p>{error}</p>
+            <Text className="help-text" size="sm">
+              Speech recognition requires Chrome or Edge browser
+            </Text>
+            <Button onClick={startSpeech}>Retry</Button>
           </div>
         )}
 
-        {!isActive() && !error() && (
-          <div class="inactive-message">
-            <span class="icon">🎙️</span>
+        {!isActive_ && !error && (
+          <div className="inactive-message">
+            <span className="icon">🎙️</span>
             <p>Microphone inactive</p>
           </div>
         )}
 
-        {isActive() && !error() && (
-          <div class="transcript-list">
-            {segments().length === 0 && !currentInterim() && (
-              <div class="waiting-message">
+        {isActive_ && !error && (
+          <div className="transcript-list">
+            {segments.length === 0 && !currentInterim && (
+              <div className="waiting-message">
                 <p>Waiting for speech...</p>
               </div>
             )}
 
-            <For each={segments()}>
-              {(segment) => (
-                <div class="transcript-segment">
-                  <span class="timestamp">{segment.timestamp.toLocaleTimeString()}</span>
-                  <span class="text">{segment.text}</span>
-                </div>
-              )}
-            </For>
+            {segments.map((segment, index) => (
+              <div key={index} className="transcript-segment">
+                <Text className="timestamp" size="xs">
+                  {segment.timestamp.toLocaleTimeString()}
+                </Text>
+                <Text className="text">{segment.text}</Text>
+              </div>
+            ))}
 
-            {currentInterim() && (
-              <div class="transcript-segment interim">
-                <span class="timestamp">...</span>
-                <span class="text">{currentInterim()}</span>
+            {currentInterim && (
+              <div className="transcript-segment interim">
+                <Text className="timestamp" size="xs">
+                  ...
+                </Text>
+                <Text className="text">{currentInterim}</Text>
               </div>
             )}
           </div>

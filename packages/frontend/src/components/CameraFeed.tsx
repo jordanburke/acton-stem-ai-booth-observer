@@ -1,4 +1,5 @@
-import { Component, createSignal, createEffect, onCleanup } from "solid-js"
+import React, { useState, useEffect, useRef } from "react"
+import { Button, Badge } from "@mantine/core"
 import { CameraCapture } from "../lib/webrtc"
 import "./CameraFeed.css"
 
@@ -8,40 +9,37 @@ type Props = {
   isActive: boolean
 }
 
-export const CameraFeed: Component<Props> = (props) => {
-  let videoRef: HTMLDivElement | undefined
-  const [camera] = createSignal(new CameraCapture())
-  const [isActive, setIsActive] = createSignal(false)
-  const [error, setError] = createSignal<string>()
-  const [lastCaptureTime, setLastCaptureTime] = createSignal<Date>()
+export const CameraFeed: React.FC<Props> = ({ onCapture, captureInterval = 30, isActive }) => {
+  const videoRef = useRef<HTMLDivElement>(null)
+  const cameraRef = useRef(new CameraCapture())
+  const captureIntervalIdRef = useRef<number | undefined>(undefined)
 
-  let captureIntervalId: number | undefined
+  const [isActive_, setIsActive] = useState(false)
+  const [error, setError] = useState<string>()
+  const [lastCaptureTime, setLastCaptureTime] = useState<Date>()
 
   const startCamera = async () => {
-    const status = await camera().start()
+    const status = await cameraRef.current.start()
 
     if (status.active && status.error === undefined) {
       setIsActive(true)
       setError(undefined)
 
       // Attach video element to DOM
-      const videoElement = camera().getVideoElement()
-      if (videoElement && videoRef) {
-        videoRef.appendChild(videoElement)
+      const videoElement = cameraRef.current.getVideoElement()
+      if (videoElement && videoRef.current) {
+        videoRef.current.appendChild(videoElement)
       }
 
       // Start capture interval
-      if (props.onCapture) {
-        captureIntervalId = window.setInterval(
-          () => {
-            const base64 = camera().captureFrame(0.7)
-            if (base64 && props.onCapture) {
-              props.onCapture(base64)
-              setLastCaptureTime(new Date())
-            }
-          },
-          (props.captureInterval || 30) * 1000,
-        )
+      if (onCapture) {
+        captureIntervalIdRef.current = window.setInterval(() => {
+          const base64 = cameraRef.current.captureFrame(0.7)
+          if (base64 && onCapture) {
+            onCapture(base64)
+            setLastCaptureTime(new Date())
+          }
+        }, captureInterval * 1000)
       }
     } else {
       setError(status.error)
@@ -50,64 +48,67 @@ export const CameraFeed: Component<Props> = (props) => {
   }
 
   const stopCamera = () => {
-    camera().stop()
+    cameraRef.current.stop()
     setIsActive(false)
 
-    if (captureIntervalId) {
-      clearInterval(captureIntervalId)
+    if (captureIntervalIdRef.current) {
+      clearInterval(captureIntervalIdRef.current)
     }
   }
 
   // Sync with parent's isActive prop
-  createEffect(() => {
-    if (props.isActive && !isActive()) {
+  useEffect(() => {
+    if (isActive && !isActive_) {
       startCamera()
-    } else if (!props.isActive && isActive()) {
+    } else if (!isActive && isActive_) {
       stopCamera()
     }
-  })
+  }, [isActive, isActive_])
 
-  onCleanup(() => {
-    stopCamera()
-  })
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopCamera()
+    }
+  }, [])
 
   const getTimeSinceCapture = () => {
-    if (!lastCaptureTime()) return null
+    if (!lastCaptureTime) return null
 
-    const seconds = Math.floor((Date.now() - lastCaptureTime()!.getTime()) / 1000)
+    const seconds = Math.floor((Date.now() - lastCaptureTime.getTime()) / 1000)
     return `${seconds}s ago`
   }
 
   return (
-    <div class="camera-feed">
-      <div class="camera-header">
-        <div class="camera-title">
-          <span class="icon">📹</span>
+    <div className="camera-feed">
+      <div className="camera-header">
+        <div className="camera-title">
+          <span className="icon">📹</span>
           <span>Camera Feed</span>
         </div>
-        <div class={`status-indicator ${isActive() ? "active" : "inactive"}`}>
-          {isActive() ? "● Active" : "○ Inactive"}
-        </div>
+        <Badge color={isActive_ ? "green" : "gray"} variant="filled" className="status-indicator">
+          {isActive_ ? "● Active" : "○ Inactive"}
+        </Badge>
       </div>
 
-      <div class="camera-preview" ref={videoRef}>
-        {error() && (
-          <div class="error-message">
-            <span class="icon">⚠️</span>
-            <p>{error()}</p>
-            <button onClick={startCamera}>Retry</button>
+      <div className="camera-preview" ref={videoRef}>
+        {error && (
+          <div className="error-message">
+            <span className="icon">⚠️</span>
+            <p>{error}</p>
+            <Button onClick={startCamera}>Retry</Button>
           </div>
         )}
-        {!isActive() && !error() && (
-          <div class="inactive-message">
-            <span class="icon">📷</span>
+        {!isActive_ && !error && (
+          <div className="inactive-message">
+            <span className="icon">📷</span>
             <p>Camera inactive</p>
           </div>
         )}
       </div>
 
-      {lastCaptureTime() && (
-        <div class="capture-info">
+      {lastCaptureTime && (
+        <div className="capture-info">
           <span>Last capture: {getTimeSinceCapture()}</span>
         </div>
       )}

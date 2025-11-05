@@ -1,8 +1,14 @@
 import { defineConfig } from "vite"
-import solid from "vite-plugin-solid"
+import react from "@vitejs/plugin-react"
 
 export default defineConfig({
-  plugins: [solid()],
+  plugins: [
+    react({
+      babel: {
+        plugins: [["babel-plugin-react-compiler", {}]],
+      },
+    }),
+  ],
   server: {
     port: 3000,
   },
