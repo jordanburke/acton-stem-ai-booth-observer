@@ -52,10 +52,16 @@ export const ControlPanel: React.FC<Props> = ({
               </Text>
             </div>
             <Button
-              className={`toggle-button ${isActive ? "active" : ""}`}
               onClick={() => onToggle(!isActive)}
               color={isActive ? "orange" : "blue"}
+              size="lg"
               leftSection={isActive ? <Pause size={16} /> : <Play size={16} />}
+              styles={{
+                root: {
+                  fontWeight: 600,
+                  fontSize: "1rem",
+                },
+              }}
             >
               {isActive ? "Pause" : "Start"}
             </Button>

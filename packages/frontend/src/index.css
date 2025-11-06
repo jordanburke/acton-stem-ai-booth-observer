@@ -85,3 +85,9 @@ button {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--border-strong);
 }
+
+/* Mantine Grid Height Fix - Force Grid.inner to respect parent height */
+.mantine-Grid-inner {
+  height: 100%;
+  max-height: 100%;
+}
