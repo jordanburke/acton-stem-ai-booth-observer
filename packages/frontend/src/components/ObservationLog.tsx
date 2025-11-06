@@ -1,6 +1,6 @@
 import React from "react"
 import { Badge, Paper, Text } from "@mantine/core"
-import { Bot, Eye, Mic, BarChart3, Lightbulb, Users, HelpCircle, Zap } from "lucide-react"
+import { Bot, Eye, Mic, BarChart3, Lightbulb } from "lucide-react"
 import type { ObservationResponse } from "@ai-booth-observer/shared"
 import "./ObservationLog.css"
 
@@ -134,42 +134,6 @@ export const ObservationLog: React.FC<Props> = ({ observations, isAnalyzing = fa
                     <span>Recommendation</span>
                   </div>
                   <Text className="section-content recommendation">{latestObservation.recommendation}</Text>
-                </div>
-
-                <div className="metrics-grid">
-                  <Paper className="metric" p="md">
-                    <Users size={24} className="metric-icon" />
-                    <Text className="metric-value" size="xl" fw={700}>
-                      {latestObservation.metrics.peopleCount}
-                    </Text>
-                    <Text className="metric-label" size="sm">
-                      People
-                    </Text>
-                  </Paper>
-                  <Paper className="metric" p="md">
-                    <HelpCircle size={24} className="metric-icon" />
-                    <Text className="metric-value" size="xl" fw={700}>
-                      {latestObservation.metrics.questionsDetected}
-                    </Text>
-                    <Text className="metric-label" size="sm">
-                      Questions
-                    </Text>
-                  </Paper>
-                  <Paper className="metric" p="md">
-                    <Zap size={24} className="metric-icon" />
-                    <Text className="metric-value" size="xl" fw={700}>
-                      {latestObservation.metrics.energy}
-                    </Text>
-                    <Text className="metric-label" size="sm">
-                      Energy
-                    </Text>
-                  </Paper>
-                </div>
-
-                <div className="cost-info">
-                  <span>Tokens: {latestObservation.tokensUsed}</span>
-                  <span>•</span>
-                  <span>Cost: ${latestObservation.costEstimate.toFixed(4)}</span>
                 </div>
 
                 {observations.length > 1 && (

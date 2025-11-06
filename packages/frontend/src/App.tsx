@@ -9,6 +9,7 @@ import { TranscriptPanel } from "./components/TranscriptPanel"
 import { ObservationLog } from "./components/ObservationLog"
 import { ControlPanel } from "./components/ControlPanel"
 import { PrivacyBanner } from "./components/PrivacyBanner"
+import { MetricsPanel } from "./components/MetricsPanel"
 import "./App.css"
 
 const App: React.FC = () => {
@@ -167,14 +168,21 @@ const App: React.FC = () => {
               </Stack>
             </Box>
 
-            {/* Right Column: AI Observations (60%) + Transcript (40%) */}
+            {/* Right Column: AI Observations + (Transcript | Metrics) */}
             <Box style={{ flex: "1 1 66.667%", minWidth: 0 }}>
               <Stack h="100%" gap={0}>
                 <Box style={{ flex: 3, minHeight: 0, overflow: "hidden" }}>
                   <ObservationLog observations={observations} isAnalyzing={isAnalyzing} />
                 </Box>
                 <Box style={{ flex: 2, minHeight: 0, overflow: "hidden" }}>
-                  <TranscriptPanel isActive={isActive} onTranscript={handleTranscript} />
+                  <Flex h="100%" gap={0}>
+                    <Box style={{ flex: 2, minHeight: 0, overflow: "hidden" }}>
+                      <TranscriptPanel isActive={isActive} onTranscript={handleTranscript} />
+                    </Box>
+                    <Box style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
+                      <MetricsPanel metrics={observations.length > 0 ? observations[observations.length - 1].metrics : undefined} />
+                    </Box>
+                  </Flex>
                 </Box>
               </Stack>
             </Box>
