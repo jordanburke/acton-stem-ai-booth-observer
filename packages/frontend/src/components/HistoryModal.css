@@ -1,0 +1,49 @@
+.history-observation {
+  border-left: 4px solid var(--border-color);
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.history-observation:hover {
+  transform: translateX(4px);
+  box-shadow: var(--shadow-md);
+}
+
+.history-observation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.history-timestamp {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.history-metrics {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.history-metric-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.history-content {
+  margin-bottom: 1rem;
+}
+
+.history-footer {
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-subtle);
+}

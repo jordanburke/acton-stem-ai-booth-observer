@@ -135,27 +135,6 @@ export const ObservationLog: React.FC<Props> = ({ observations, isAnalyzing = fa
                   </div>
                   <Text className="section-content recommendation">{latestObservation.recommendation}</Text>
                 </div>
-
-                {observations.length > 1 && (
-                  <details className="history-section">
-                    <summary>History ({observations.length - 1} previous)</summary>
-                    <div className="history-list">
-                      {observations
-                        .slice(0, -1)
-                        .reverse()
-                        .map((obs) => (
-                          <div key={obs.timestamp} className="history-item">
-                            <div className="history-timestamp">{new Date(obs.timestamp).toLocaleTimeString()}</div>
-                            <div className="history-summary">
-                              <strong>Engagement:</strong> {obs.engagement.level} • <strong>People:</strong>{" "}
-                              {obs.metrics.peopleCount}
-                            </div>
-                            <div className="history-recommendation">{obs.recommendation}</div>
-                          </div>
-                        ))}
-                    </div>
-                  </details>
-                )}
               </div>
             </Paper>
           </div>

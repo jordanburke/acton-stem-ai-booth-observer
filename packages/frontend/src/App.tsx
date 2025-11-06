@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import { AppShell, Title, Text, Button, Modal, Flex, Stack, Box } from "@mantine/core"
 import { useDisclosure } from "@mantine/hooks"
-import { Bot, Lock, AlertTriangle } from "lucide-react"
+import { Bot, Lock, AlertTriangle, History } from "lucide-react"
 import type { ObservationResponse, BudgetStatus } from "@ai-booth-observer/shared"
 import { ObserverAPIClient } from "./lib/api-client"
 import { CameraFeed } from "./components/CameraFeed"
@@ -10,11 +10,13 @@ import { ObservationLog } from "./components/ObservationLog"
 import { ControlPanel } from "./components/ControlPanel"
 import { PrivacyBanner } from "./components/PrivacyBanner"
 import { MetricsPanel } from "./components/MetricsPanel"
+import { HistoryModal } from "./components/HistoryModal"
 import "./App.css"
 
 const App: React.FC = () => {
-  // Privacy modal state
+  // Modal states
   const [privacyOpened, { open: openPrivacy, close: closePrivacy }] = useDisclosure(false)
+  const [historyOpened, { open: openHistory, close: closeHistory }] = useDisclosure(false)
 
   // System state
   const [isActive, setIsActive] = useState(false)
@@ -29,6 +31,9 @@ const App: React.FC = () => {
   // Latest captures
   const [latestImage, setLatestImage] = useState<string>()
   const latestTranscriptRef = useRef<string | undefined>(undefined)
+
+  // Race condition prevention - track latest observation timestamp
+  const latestResponseTimestampRef = useRef<string>()
 
   // API client
   const apiClientRef = useRef(new ObserverAPIClient())
@@ -64,11 +69,26 @@ const App: React.FC = () => {
       const response = await apiClientRef.current.observe(imageToUse, transcript)
       console.log("Observation received:", response)
 
-      // Add to observations list
-      setObservations((prev) => [...prev, response])
+      // Race condition prevention: only update if this response is newer than what we have
+      const responseTime = new Date(response.timestamp).getTime()
+      const latestTime = latestResponseTimestampRef.current
+        ? new Date(latestResponseTimestampRef.current).getTime()
+        : 0
 
-      // Update budget status
-      await updateBudgetStatus()
+      if (responseTime > latestTime) {
+        // Add to observations list
+        setObservations((prev) => [...prev, response])
+        latestResponseTimestampRef.current = response.timestamp
+
+        // Update budget status
+        await updateBudgetStatus()
+      } else {
+        console.warn(
+          `⚠️ Discarded out-of-order observation response:`,
+          `Response timestamp: ${response.timestamp},`,
+          `Latest timestamp: ${latestResponseTimestampRef.current}`,
+        )
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to get observation"
       console.error("Observation error:", errorMessage)
@@ -134,9 +154,14 @@ const App: React.FC = () => {
               </Title>
               <Text className="app-subtitle">Live Multi-Modal Agentic AI System</Text>
             </div>
-            <Button variant="subtle" leftSection={<Lock size={16} />} onClick={openPrivacy}>
-              Privacy
-            </Button>
+            <div style={{ display: "flex", gap: "0.5rem" }}>
+              <Button variant="subtle" leftSection={<History size={16} />} onClick={openHistory}>
+                History ({observations.length})
+              </Button>
+              <Button variant="subtle" leftSection={<Lock size={16} />} onClick={openPrivacy}>
+                Privacy
+              </Button>
+            </div>
           </div>
         </AppShell.Header>
 
@@ -190,10 +215,12 @@ const App: React.FC = () => {
         </AppShell.Main>
       </AppShell>
 
-      {/* Privacy Modal */}
+      {/* Modals */}
       <Modal opened={privacyOpened} onClose={closePrivacy} title="Privacy Notice" size="lg">
         <PrivacyBanner hideHeader />
       </Modal>
+
+      <HistoryModal opened={historyOpened} onClose={closeHistory} observations={observations} />
     </>
   )
 }
