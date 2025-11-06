@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react"
-import { Button, Badge, Paper, Stack } from "@mantine/core"
+import { Button, Badge, Paper } from "@mantine/core"
 import { Video, Camera, AlertTriangle } from "lucide-react"
 import { CameraCapture } from "../lib/webrtc"
 import "./CameraFeed.css"

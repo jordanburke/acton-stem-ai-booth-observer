@@ -178,7 +178,9 @@
   gap: 0.25rem;
   text-align: center;
   box-shadow: var(--shadow-sm);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .metric:hover {

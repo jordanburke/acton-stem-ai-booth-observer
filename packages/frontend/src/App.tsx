@@ -27,7 +27,7 @@ const App: React.FC = () => {
 
   // Latest captures
   const [latestImage, setLatestImage] = useState<string>()
-  const [latestTranscript, setLatestTranscript] = useState<string>()
+  const latestTranscriptRef = useRef<string | undefined>(undefined)
 
   // API client
   const apiClientRef = useRef(new ObserverAPIClient())
@@ -42,13 +42,13 @@ const App: React.FC = () => {
   // Handle transcript update
   const handleTranscript = (text: string) => {
     console.log("Transcript updated:", text)
-    setLatestTranscript(text)
+    latestTranscriptRef.current = text
   }
 
   // Trigger observation when we have both image and transcript
   const triggerObservation = async (image?: string) => {
     const imageToUse = image || latestImage
-    const transcript = latestTranscript || "No speech detected yet"
+    const transcript = latestTranscriptRef.current || "(No recent speech detected in last 60 seconds)"
 
     if (!imageToUse || isAnalyzing) {
       return
@@ -58,6 +58,7 @@ const App: React.FC = () => {
     setError(undefined)
 
     try {
+      console.log("Latest transcript ref:", latestTranscriptRef.current)
       console.log("Sending observation request with transcript:", transcript)
       const response = await apiClientRef.current.observe(imageToUse, transcript)
       console.log("Observation received:", response)
@@ -108,7 +109,7 @@ const App: React.FC = () => {
     if (!active) {
       // Clear state when pausing
       setLatestImage(undefined)
-      setLatestTranscript(undefined)
+      latestTranscriptRef.current = undefined
     }
   }
 
@@ -116,7 +117,15 @@ const App: React.FC = () => {
     <>
       <AppShell header={{ height: 60 }} padding={0}>
         <AppShell.Header className="app-header" bg="var(--bg-tertiary)">
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: "100%", padding: "0 1rem" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              height: "100%",
+              padding: "0 1rem",
+            }}
+          >
             <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
               <Title order={1} className="app-title">
                 <Bot size={28} style={{ marginRight: "0.5rem" }} />
