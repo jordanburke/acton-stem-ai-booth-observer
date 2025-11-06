@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react"
-import { AppShell, Title, Text, Button, Modal, Grid, Stack } from "@mantine/core"
+import { AppShell, Title, Text, Button, Modal, Grid, Stack, Box } from "@mantine/core"
 import { useDisclosure } from "@mantine/hooks"
 import { Bot, Lock, AlertTriangle } from "lucide-react"
 import type { ObservationResponse, BudgetStatus } from "@ai-booth-observer/shared"
@@ -115,7 +115,7 @@ const App: React.FC = () => {
   return (
     <>
       <AppShell header={{ height: 60 }} padding={0}>
-        <AppShell.Header className="app-header">
+        <AppShell.Header className="app-header" bg="var(--bg-tertiary)">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: "100%", padding: "0 1rem" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
               <Title order={1} className="app-title">
@@ -157,12 +157,12 @@ const App: React.FC = () => {
             {/* Right Column: AI Observations (60%) + Transcript (40%) */}
             <Grid.Col span={8}>
               <Stack h="100%" gap={0}>
-                <div style={{ height: "60%", overflow: "hidden" }}>
+                <Box style={{ flex: 3, minHeight: 0, overflow: "hidden" }}>
                   <ObservationLog observations={observations} isAnalyzing={isAnalyzing} />
-                </div>
-                <div style={{ height: "40%", overflow: "hidden" }}>
+                </Box>
+                <Box style={{ flex: 2, minHeight: 0, overflow: "hidden" }}>
                   <TranscriptPanel isActive={isActive} onTranscript={handleTranscript} />
-                </div>
+                </Box>
               </Stack>
             </Grid.Col>
           </Grid>

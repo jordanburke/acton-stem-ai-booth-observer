@@ -39,7 +39,7 @@ export const ObservationLog: React.FC<Props> = ({ observations, isAnalyzing = fa
   const latestObservation = observations.length > 0 ? observations[observations.length - 1] : null
 
   return (
-    <div className="observation-log">
+    <Paper className="observation-log" shadow="sm" h="100%" p={0}>
       <div className="observation-header">
         <div className="observation-title">
           <Bot size={18} style={{ marginRight: "0.5rem" }} />
@@ -173,6 +173,6 @@ export const ObservationLog: React.FC<Props> = ({ observations, isAnalyzing = fa
           </div>
         </details>
       )}
-    </div>
+    </Paper>
   )
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react"
-import { Button, Badge } from "@mantine/core"
+import { Button, Badge, Paper, Stack } from "@mantine/core"
 import { Video, Camera, AlertTriangle } from "lucide-react"
 import { CameraCapture } from "../lib/webrtc"
 import "./CameraFeed.css"
@@ -81,7 +81,7 @@ export const CameraFeed: React.FC<Props> = ({ onCapture, captureInterval = 30, i
   }
 
   return (
-    <div className="camera-feed">
+    <Paper className="camera-feed" shadow="sm" h="100%" p={0}>
       <div className="camera-header">
         <div className="camera-title">
           <Video size={18} style={{ marginRight: "0.5rem" }} />
@@ -113,6 +113,6 @@ export const CameraFeed: React.FC<Props> = ({ onCapture, captureInterval = 30, i
           <span>Last capture: {getTimeSinceCapture()}</span>
         </div>
       )}
-    </div>
+    </Paper>
   )
 }

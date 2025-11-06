@@ -31,7 +31,7 @@ export const ControlPanel: React.FC<Props> = ({
   }
 
   return (
-    <div className="control-panel">
+    <Paper className="control-panel" shadow="sm" h="100%" p={0}>
       <div className="control-header">
         <div className="control-title">
           <Settings size={18} style={{ marginRight: "0.5rem" }} />
@@ -151,6 +151,6 @@ export const ControlPanel: React.FC<Props> = ({
           </div>
         </div>
       </div>
-    </div>
+    </Paper>
   )
 }

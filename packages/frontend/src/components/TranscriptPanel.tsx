@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react"
-import { Button, Badge, Text } from "@mantine/core"
+import { Button, Badge, Text, Paper } from "@mantine/core"
 import { Mic, Circle, AlertTriangle } from "lucide-react"
 import { SpeechTranscription, type TranscriptSegment } from "../lib/speech"
 import "./TranscriptPanel.css"
@@ -79,7 +79,7 @@ export const TranscriptPanel: React.FC<Props> = ({ onTranscript, isActive }) => 
   }, [])
 
   return (
-    <div className="transcript-panel">
+    <Paper className="transcript-panel" shadow="sm" h="100%" p={0}>
       <div className="transcript-header">
         <div className="transcript-title">
           <Mic size={18} style={{ marginRight: "0.5rem" }} />
@@ -145,6 +145,6 @@ export const TranscriptPanel: React.FC<Props> = ({ onTranscript, isActive }) => 
           </div>
         )}
       </div>
-    </div>
+    </Paper>
   )
 }

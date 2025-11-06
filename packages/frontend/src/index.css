@@ -7,16 +7,16 @@
 }
 
 :root {
-  /* Enhanced Dark Background System */
-  --bg-primary: #0a0e1a;
-  --bg-secondary: #111827;
-  --bg-tertiary: #1a202e;
-  --bg-elevated: #242b3d;
+  /* Enhanced Dark Background System - Using Mantine Standard Colors */
+  --bg-primary: #1a1b1e;
+  --bg-secondary: #25262b;
+  --bg-tertiary: #2d2e33;
+  --bg-elevated: #373a40;
 
-  /* Text Colors - Better Contrast */
-  --text-primary: #f8fafc;
-  --text-secondary: #cbd5e1;
-  --text-tertiary: #94a3b8;
+  /* Text Colors - Mantine Standard */
+  --text-primary: #c9cccf;
+  --text-secondary: #909296;
+  --text-tertiary: #5c5f66;
 
   /* Accent Colors */
   --accent-blue: #3b82f6;

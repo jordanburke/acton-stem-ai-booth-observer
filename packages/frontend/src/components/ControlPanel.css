@@ -1,7 +1,5 @@
 .control-panel {
-  height: auto;
-  max-height: 250px;
-  flex-shrink: 0;
+  flex: 1;
   background: var(--bg-secondary);
   overflow-y: auto;
   overflow-x: hidden;

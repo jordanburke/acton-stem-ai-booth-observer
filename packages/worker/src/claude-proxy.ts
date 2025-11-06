@@ -30,6 +30,13 @@ Analyze what you see in the camera feed.
 AUDIO INPUT (last 60 seconds of conversation):
 "${request.transcript}"
 
+QUESTION DETECTION GUIDANCE:
+Count ONLY visitor questions (ignore exhibitor questions). A question is:
+- A sentence ending with ? (e.g., "What does this do?", "How does it work?")
+- Contains question words: who, what, when, where, why, how, can, could, would, should, is, are, does
+- Example questions: "Can you explain that?", "What's the purpose?", "How do I start?"
+- Do NOT count rhetorical questions or exhibitor clarifications
+
 Please analyze and provide a JSON response with this exact structure:
 
 {
@@ -42,7 +49,7 @@ Please analyze and provide a JSON response with this exact structure:
   "recommendation": "2-3 sentences of what the exhibitor should do RIGHT NOW - specific and actionable",
   "metrics": {
     "peopleCount": <number>,
-    "questionsDetected": <number>,
+    "questionsDetected": <number of visitor questions found in audio>,
     "energy": "high" | "medium" | "low"
   }
 }

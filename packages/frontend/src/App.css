@@ -1,7 +1,7 @@
 /* AppShell header styles */
 .app-header {
   background: var(--bg-tertiary);
-  border-bottom: 2px solid var(--border-color);
+  border-bottom: 2px solid var(--border-medium);
 }
 
 .app-title {

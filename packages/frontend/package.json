@@ -13,8 +13,8 @@
   },
   "dependencies": {
     "@ai-booth-observer/shared": "workspace:*",
-    "@mantine/core": "^7.15.2",
-    "@mantine/hooks": "^7.15.2",
+    "@mantine/core": "^8.3.6",
+    "@mantine/hooks": "^8.3.6",
     "lucide-react": "^0.552.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

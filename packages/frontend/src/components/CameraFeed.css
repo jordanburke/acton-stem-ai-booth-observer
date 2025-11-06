@@ -1,6 +1,5 @@
 .camera-feed {
-  height: 350px;
-  flex-shrink: 0;
+  height: 100%;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-medium);
   overflow: hidden;
