@@ -31,7 +31,7 @@ export const ControlPanel: React.FC<Props> = ({
   }
 
   return (
-    <Paper className="control-panel" shadow="sm" h="100%" p={0}>
+    <Paper className="control-panel" shadow="sm" p={0}>
       <div className="control-header">
         <div className="control-title">
           <Settings size={18} style={{ marginRight: "0.5rem" }} />
@@ -77,15 +77,15 @@ export const ControlPanel: React.FC<Props> = ({
             </Text>
           </label>
           <Slider
-            min={15}
-            max={120}
-            step={15}
+            min={5}
+            max={60}
+            step={5}
             value={captureInterval}
             onChange={onIntervalChange}
             marks={[
-              { value: 15, label: "15s" },
+              { value: 5, label: "5s" },
+              { value: 30, label: "30s" },
               { value: 60, label: "60s" },
-              { value: 120, label: "120s" },
             ]}
             className="slider"
           />

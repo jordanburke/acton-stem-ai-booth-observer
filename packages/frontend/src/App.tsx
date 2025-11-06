@@ -17,7 +17,7 @@ const App: React.FC = () => {
 
   // System state
   const [isActive, setIsActive] = useState(false)
-  const [captureInterval, setCaptureInterval] = useState(30) // seconds
+  const [captureInterval, setCaptureInterval] = useState(10) // seconds
 
   // Data state
   const [observations, setObservations] = useState<ObservationResponse[]>([])
@@ -58,7 +58,7 @@ const App: React.FC = () => {
     setError(undefined)
 
     try {
-      console.log("Sending observation request...")
+      console.log("Sending observation request with transcript:", transcript)
       const response = await apiClientRef.current.observe(imageToUse, transcript)
       console.log("Observation received:", response)
 
@@ -146,7 +146,7 @@ const App: React.FC = () => {
                 <Box style={{ flex: 2, minHeight: 0, overflow: "hidden" }}>
                   <CameraFeed isActive={isActive} onCapture={handleCameraCapture} captureInterval={captureInterval} />
                 </Box>
-                <Box style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
+                <Box style={{ flex: 3, minHeight: 0, overflow: "hidden" }}>
                   <ControlPanel
                     isActive={isActive}
                     onToggle={handleToggle}

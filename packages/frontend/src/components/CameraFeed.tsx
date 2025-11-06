@@ -81,7 +81,7 @@ export const CameraFeed: React.FC<Props> = ({ onCapture, captureInterval = 30, i
   }
 
   return (
-    <Paper className="camera-feed" shadow="sm" h="100%" p={0}>
+    <Paper className="camera-feed" shadow="sm" p={0}>
       <div className="camera-header">
         <div className="camera-title">
           <Video size={18} style={{ marginRight: "0.5rem" }} />
