@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react"
-import { AppShell, Title, Text, Button, Modal, Grid, Stack, Box } from "@mantine/core"
+import { AppShell, Title, Text, Button, Modal, Flex, Stack, Box } from "@mantine/core"
 import { useDisclosure } from "@mantine/hooks"
 import { Bot, Lock, AlertTriangle } from "lucide-react"
 import type { ObservationResponse, BudgetStatus } from "@ai-booth-observer/shared"
@@ -139,23 +139,27 @@ const App: React.FC = () => {
             </div>
           )}
 
-          <Grid h="calc(100vh - 60px)" gutter={0}>
-            {/* Left Column: Camera + Controls (30%) */}
-            <Grid.Col span={4}>
+          <Flex h="calc(100vh - 60px)" gap={0}>
+            {/* Left Column: Camera + Controls (33%) */}
+            <Box style={{ flex: "0 0 33.333%", minWidth: 0 }}>
               <Stack h="100%" gap={0}>
-                <CameraFeed isActive={isActive} onCapture={handleCameraCapture} captureInterval={captureInterval} />
-                <ControlPanel
-                  isActive={isActive}
-                  onToggle={handleToggle}
-                  budgetStatus={budgetStatus}
-                  captureInterval={captureInterval}
-                  onIntervalChange={setCaptureInterval}
-                />
+                <Box style={{ flex: 2, minHeight: 0, overflow: "hidden" }}>
+                  <CameraFeed isActive={isActive} onCapture={handleCameraCapture} captureInterval={captureInterval} />
+                </Box>
+                <Box style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
+                  <ControlPanel
+                    isActive={isActive}
+                    onToggle={handleToggle}
+                    budgetStatus={budgetStatus}
+                    captureInterval={captureInterval}
+                    onIntervalChange={setCaptureInterval}
+                  />
+                </Box>
               </Stack>
-            </Grid.Col>
+            </Box>
 
             {/* Right Column: AI Observations (60%) + Transcript (40%) */}
-            <Grid.Col span={8}>
+            <Box style={{ flex: "1 1 66.667%", minWidth: 0 }}>
               <Stack h="100%" gap={0}>
                 <Box style={{ flex: 3, minHeight: 0, overflow: "hidden" }}>
                   <ObservationLog observations={observations} isAnalyzing={isAnalyzing} />
@@ -164,8 +168,8 @@ const App: React.FC = () => {
                   <TranscriptPanel isActive={isActive} onTranscript={handleTranscript} />
                 </Box>
               </Stack>
-            </Grid.Col>
-          </Grid>
+            </Box>
+          </Flex>
         </AppShell.Main>
       </AppShell>
 
