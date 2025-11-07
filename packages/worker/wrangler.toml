@@ -15,7 +15,7 @@ preview_id = "preview_id"
 
 [vars]
 # Public configuration (non-sensitive)
-MAX_TOKENS_PER_DAY = "1000000"  # 1M tokens ~= $3/day for Haiku
+MAX_TOKENS_PER_DAY = "133333333"  # 133M tokens ~= $100/day for Haiku (avg $0.75/M)
 CAPTURE_INTERVAL_SECONDS = "30"
 
 # Note: ANTHROPIC_API_KEY should be set via: wrangler secret put ANTHROPIC_API_KEY
