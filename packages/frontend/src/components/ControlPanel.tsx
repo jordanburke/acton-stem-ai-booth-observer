@@ -1,9 +1,7 @@
 import React from "react"
-import { Button, Slider, Text, Progress, Paper, Switch } from "@mantine/core"
-import { Settings, Pause, Play, Video, Mic } from "lucide-react"
+import { Button, Slider, Text, Progress, Paper } from "@mantine/core"
+import { Settings, Pause, Play } from "lucide-react"
 import type { BudgetStatus } from "@ai-booth-observer/shared"
-import { CameraCapture } from "../lib/webrtc"
-import { SpeechTranscription } from "../lib/speech"
 import "./ControlPanel.css"
 
 type Props = {
@@ -12,8 +10,6 @@ type Props = {
   budgetStatus?: BudgetStatus
   captureInterval: number
   onIntervalChange: (seconds: number) => void
-  autoSummaryEnabled: boolean
-  onAutoSummaryToggle: (enabled: boolean) => void
 }
 
 export const ControlPanel: React.FC<Props> = ({
@@ -22,8 +18,6 @@ export const ControlPanel: React.FC<Props> = ({
   budgetStatus,
   captureInterval,
   onIntervalChange,
-  autoSummaryEnabled,
-  onAutoSummaryToggle,
 }) => {
   const getBudgetColor = (): string => {
     if (!budgetStatus) return "var(--text-secondary)"
@@ -95,22 +89,6 @@ export const ControlPanel: React.FC<Props> = ({
           />
         </div>
 
-        {/* Auto-Summary Toggle */}
-        <div className="control-section">
-          <div className="toggle-info">
-            <Text fw={600}>Auto-Summary</Text>
-            <Text size="sm" c="dimmed" mt={4}>
-              Generate summary every 1 minute
-            </Text>
-          </div>
-          <Switch
-            checked={autoSummaryEnabled}
-            onChange={(event) => onAutoSummaryToggle(event.currentTarget.checked)}
-            size="md"
-            color="blue"
-          />
-        </div>
-
         {/* Budget Status */}
         {budgetStatus && (
           <Paper className="control-section budget-section" p="md">
@@ -160,22 +138,6 @@ export const ControlPanel: React.FC<Props> = ({
             </div>
           </Paper>
         )}
-
-        {/* System Info */}
-        <div className="control-section info-section">
-          <div className="info-item">
-            <Video size={18} className="info-icon" />
-            <Text className="info-text" size="sm">
-              Camera: {CameraCapture.isSupported() ? "✓ Supported" : "✗ Not Supported"}
-            </Text>
-          </div>
-          <div className="info-item">
-            <Mic size={18} className="info-icon" />
-            <Text className="info-text" size="sm">
-              Speech: {SpeechTranscription.isSupported() ? "✓ Supported" : "✗ Not Supported"}
-            </Text>
-          </div>
-        </div>
       </div>
     </Paper>
   )

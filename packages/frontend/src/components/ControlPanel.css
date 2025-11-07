@@ -167,25 +167,3 @@
   color: var(--text-primary);
   font-weight: 600;
 }
-
-.info-section {
-  padding: 1rem;
-  background: var(--bg-tertiary);
-  border-radius: 8px;
-}
-
-.info-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem 0;
-  font-size: 0.875rem;
-}
-
-.info-icon {
-  font-size: 1.25rem;
-}
-
-.info-text {
-  color: var(--text-primary);
-}

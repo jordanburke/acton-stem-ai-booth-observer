@@ -23,7 +23,6 @@ const App: React.FC = () => {
   // System state
   const [isActive, setIsActive] = useState(false)
   const [captureInterval, setCaptureInterval] = useState(10) // seconds
-  const [autoSummaryEnabled, setAutoSummaryEnabled] = useState(false)
 
   // Data state
   const [observations, setObservations] = useState<ObservationResponse[]>([])
@@ -174,19 +173,6 @@ const App: React.FC = () => {
     checkHealth()
   }, [])
 
-  // Auto-summary timer
-  useEffect(() => {
-    if (!autoSummaryEnabled || !isActive || observations.length === 0) {
-      return
-    }
-
-    const interval = setInterval(() => {
-      handleGenerateSummary(false) // Don't auto-open modal
-    }, 60000) // 1 minute = 60000ms
-
-    return () => clearInterval(interval)
-  }, [autoSummaryEnabled, isActive, observations.length])
-
   // Handle system toggle
   const handleToggle = (active: boolean) => {
     setIsActive(active)
@@ -261,8 +247,6 @@ const App: React.FC = () => {
                     budgetStatus={budgetStatus}
                     captureInterval={captureInterval}
                     onIntervalChange={setCaptureInterval}
-                    autoSummaryEnabled={autoSummaryEnabled}
-                    onAutoSummaryToggle={setAutoSummaryEnabled}
                   />
                 </Box>
               </Stack>

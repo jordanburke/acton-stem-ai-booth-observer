@@ -17,6 +17,7 @@ export class RateLimiter {
   async canMakeRequest(maxTokensPerDay: number): Promise<boolean> {
     if (!this.kv) {
       // If KV not available, allow request (local dev mode)
+      console.warn("⚠️  KV namespace not configured - budget tracking disabled")
       return true
     }
 
@@ -74,14 +75,18 @@ export class RateLimiter {
   async getBudgetStatus(maxTokensPerDay: number): Promise<BudgetStatus> {
     const usage = await this.getUsageToday()
 
-    const remainingBudget = Math.max(0, maxTokensPerDay - usage.tokensUsedToday)
     const budgetPercentUsed = (usage.tokensUsedToday / maxTokensPerDay) * 100
+
+    // Haiku pricing: Input: $0.25/M, Output: $1.25/M (average ~$0.75/M)
+    const avgCostPerToken = 0.00000075
+    const maxBudget = maxTokensPerDay * avgCostPerToken
+    const remainingBudgetDollars = Math.max(0, maxBudget - usage.estimatedCostToday)
 
     return {
       tokensUsedToday: usage.tokensUsedToday,
       maxTokensPerDay,
       estimatedCostToday: usage.estimatedCostToday,
-      remainingBudget: remainingBudget * 0.0000025, // Approximate $ value
+      remainingBudget: remainingBudgetDollars,
       budgetPercentUsed,
     }
   }

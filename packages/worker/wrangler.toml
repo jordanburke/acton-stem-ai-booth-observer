@@ -6,11 +6,12 @@ compatibility_date = "2025-01-01"
 port = 8787
 
 # KV namespace for rate limiting and cost tracking
-# Run: wrangler kv:namespace create "USAGE_TRACKER"
-# Then add the ID below
-# [[kv_namespaces]]
-# binding = "USAGE_TRACKER"
-# id = "your-namespace-id-here"
+# For local dev, KV is optional (will work without it, just won't track budget)
+# For production: Run `wrangler kv:namespace create "USAGE_TRACKER"` then add ID below
+[[kv_namespaces]]
+binding = "USAGE_TRACKER"
+id = "preview_id" # Replace with actual ID from: wrangler kv:namespace create "USAGE_TRACKER"
+preview_id = "preview_id"
 
 [vars]
 # Public configuration (non-sensitive)
