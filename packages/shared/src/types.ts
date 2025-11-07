@@ -6,6 +6,7 @@ export type ObservationRequest = {
   transcript: string
   transcriptSinceLastObservation: string
   timestamp: string
+  sessionId?: string // Optional session ID for budget tracking (resets on page refresh)
   previousObservations?: ObservationResponse[] // Rolling context (last 3-5 observations)
 }
 
@@ -84,6 +85,8 @@ export type SystemConfig = {
  */
 export type SummarizeRequest = {
   observations: ObservationResponse[]
+  previousSummary?: SummaryResponse // Previous summary for rolling context
+  sessionId?: string // Optional session ID for budget tracking
   startTime?: string
   endTime?: string
 }

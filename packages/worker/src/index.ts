@@ -63,7 +63,7 @@ export default {
 
         // Check rate limits
         const maxTokens = parseInt(env.MAX_TOKENS_PER_DAY)
-        const canProceed = await rateLimiter.canMakeRequest(maxTokens)
+        const canProceed = await rateLimiter.canMakeRequest(maxTokens, observationRequest.sessionId)
 
         if (!canProceed) {
           const errorResponse: ErrorResponse = {
@@ -81,7 +81,7 @@ export default {
         const response = await analyzeBoothObservation(observationRequest, env.ANTHROPIC_API_KEY)
 
         // Record usage
-        await rateLimiter.recordUsage(response.tokensUsed, response.costEstimate)
+        await rateLimiter.recordUsage(response.tokensUsed, response.costEstimate, observationRequest.sessionId)
 
         return new Response(JSON.stringify(response), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -120,7 +120,7 @@ export default {
 
         // Check rate limits
         const maxTokens = parseInt(env.MAX_TOKENS_PER_DAY)
-        const canProceed = await rateLimiter.canMakeRequest(maxTokens)
+        const canProceed = await rateLimiter.canMakeRequest(maxTokens, summarizeRequest.sessionId)
 
         if (!canProceed) {
           const errorResponse: ErrorResponse = {
@@ -135,10 +135,10 @@ export default {
         }
 
         // Generate summary
-        const response = await summarizeMeeting(summarizeRequest.observations, env.ANTHROPIC_API_KEY)
+        const response = await summarizeMeeting(summarizeRequest, env.ANTHROPIC_API_KEY)
 
         // Record usage
-        await rateLimiter.recordUsage(response.tokensUsed, response.costEstimate)
+        await rateLimiter.recordUsage(response.tokensUsed, response.costEstimate, summarizeRequest.sessionId)
 
         return new Response(JSON.stringify(response), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },

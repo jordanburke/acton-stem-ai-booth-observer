@@ -15,6 +15,9 @@ import { SummaryModal } from "./components/SummaryModal"
 import "./App.css"
 
 const App: React.FC = () => {
+  // Session ID - generates once per page load for budget tracking reset
+  const sessionIdRef = useRef(`session-${Date.now()}-${Math.random().toString(36).substring(7)}`)
+
   // Modal states
   const [privacyOpened, { open: openPrivacy, close: closePrivacy }] = useDisclosure(false)
   const [historyOpened, { open: openHistory, close: closeHistory }] = useDisclosure(false)
@@ -90,6 +93,7 @@ const App: React.FC = () => {
         currentTranscript,
         newTranscriptPortion,
         rollingContext.length > 0 ? rollingContext : undefined,
+        sessionIdRef.current,
       )
       console.log("Observation received:", response)
 
@@ -144,7 +148,11 @@ const App: React.FC = () => {
     setError(undefined)
 
     try {
-      const summaryResponse = await apiClientRef.current.summarize(observations)
+      const summaryResponse = await apiClientRef.current.summarize(
+        observations,
+        summary || undefined,
+        sessionIdRef.current,
+      )
       setSummary(summaryResponse)
       if (openModal) {
         openSummary()

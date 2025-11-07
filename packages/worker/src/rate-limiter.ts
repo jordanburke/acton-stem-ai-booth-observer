@@ -14,28 +14,28 @@ export class RateLimiter {
   /**
    * Check if request is within budget limits
    */
-  async canMakeRequest(maxTokensPerDay: number): Promise<boolean> {
+  async canMakeRequest(maxTokensPerDay: number, sessionId?: string): Promise<boolean> {
     if (!this.kv) {
       // If KV not available, allow request (local dev mode)
       console.warn("⚠️  KV namespace not configured - budget tracking disabled")
       return true
     }
 
-    const usage = await this.getUsageToday()
+    const usage = await this.getUsageToday(sessionId)
     return usage.tokensUsedToday < maxTokensPerDay
   }
 
   /**
    * Record token usage after successful API call
    */
-  async recordUsage(tokensUsed: number, cost: number): Promise<void> {
+  async recordUsage(tokensUsed: number, cost: number, sessionId?: string): Promise<void> {
     if (!this.kv) {
       // Skip recording if KV not available (local dev mode)
       return
     }
 
-    // Get current date key (resets daily)
-    const dateKey = this.getDateKey()
+    // Get current date key (resets daily or per session)
+    const dateKey = this.getDateKey(sessionId)
 
     // Increment tokens
     const currentTokens = (await this.kv.get<number>(`${USAGE_KEY}:${dateKey}`, "json")) || 0
@@ -53,12 +53,12 @@ export class RateLimiter {
   /**
    * Get current usage statistics
    */
-  async getUsageToday(): Promise<{ tokensUsedToday: number; estimatedCostToday: number }> {
+  async getUsageToday(sessionId?: string): Promise<{ tokensUsedToday: number; estimatedCostToday: number }> {
     if (!this.kv) {
       return { tokensUsedToday: 0, estimatedCostToday: 0 }
     }
 
-    const dateKey = this.getDateKey()
+    const dateKey = this.getDateKey(sessionId)
 
     const tokensUsedToday = (await this.kv.get<number>(`${USAGE_KEY}:${dateKey}`, "json")) || 0
     const estimatedCostToday = (await this.kv.get<number>(`${COST_KEY}:${dateKey}`, "json")) || 0
@@ -72,8 +72,8 @@ export class RateLimiter {
   /**
    * Get budget status
    */
-  async getBudgetStatus(maxTokensPerDay: number): Promise<BudgetStatus> {
-    const usage = await this.getUsageToday()
+  async getBudgetStatus(maxTokensPerDay: number, sessionId?: string): Promise<BudgetStatus> {
+    const usage = await this.getUsageToday(sessionId)
 
     const budgetPercentUsed = (usage.tokensUsedToday / maxTokensPerDay) * 100
 
@@ -92,10 +92,19 @@ export class RateLimiter {
   }
 
   /**
-   * Get date key for daily tracking (YYYY-MM-DD)
+   * Get date key for daily tracking (YYYY-MM-DD) or session-based tracking
+   * If sessionId is provided, returns sessionId:YYYY-MM-DD for per-session tracking
    */
-  private getDateKey(): string {
+  private getDateKey(sessionId?: string): string {
     const now = new Date()
-    return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}-${String(now.getUTCDate()).padStart(2, "0")}`
+    const dateStr = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}-${String(now.getUTCDate()).padStart(2, "0")}`
+
+    // If sessionId provided, scope to session (resets on page refresh)
+    if (sessionId) {
+      return `${sessionId}:${dateStr}`
+    }
+
+    // Otherwise, use daily tracking (resets at UTC midnight)
+    return dateStr
   }
 }

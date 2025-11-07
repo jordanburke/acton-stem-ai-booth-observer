@@ -4,7 +4,7 @@
  */
 
 import Anthropic from "@anthropic-ai/sdk"
-import type { ObservationResponse, SummaryResponse } from "@ai-booth-observer/shared"
+import type { SummaryResponse, SummarizeRequest } from "@ai-booth-observer/shared"
 
 const SYSTEM_PROMPT = `You are an AI assistant that analyzes exhibition booth interactions and creates concise meeting summaries.
 
@@ -12,13 +12,12 @@ Your role is to synthesize multiple observations into objective documentation ab
 
 Be clear, structured, and document observable patterns and behaviors without judgment. Recognize that booth activity naturally varies - quiet periods may be due to setup, breaks, or timing rather than problems.`
 
-export async function summarizeMeeting(
-  observations: ObservationResponse[],
-  anthropicApiKey: string,
-): Promise<SummaryResponse> {
+export async function summarizeMeeting(request: SummarizeRequest, anthropicApiKey: string): Promise<SummaryResponse> {
   const anthropic = new Anthropic({
     apiKey: anthropicApiKey,
   })
+
+  const { observations, previousSummary } = request
 
   // Calculate time range
   const startTime = observations.length > 0 ? new Date(observations[0].timestamp) : new Date()
@@ -39,6 +38,29 @@ export async function summarizeMeeting(
     )
     .join("\n\n")
 
+  // Build previous summary context if available
+  let previousSummarySection = ""
+  if (previousSummary) {
+    previousSummarySection = `
+<<<PREVIOUS SUMMARY (FOR ROLLING CONTEXT)>>>
+This is the previous summary from an earlier analysis. Use it to:
+1. Identify trends and changes since the last summary
+2. Build on previous insights rather than repeating them
+3. Note what's new or different in the current observations
+4. Track how engagement, topics, and recommendations have evolved
+
+Previous Summary:
+- Duration: ${previousSummary.duration}
+- Engagement: ${previousSummary.engagementSummary}
+- Key Topics: ${previousSummary.keyTopics.join(", ")}
+- Recommendations: ${previousSummary.recommendations.join("; ")}
+- Attendee Insights: ${previousSummary.attendeeInsights}
+- Peak Engagement: ${previousSummary.peakEngagement.reason} at ${new Date(previousSummary.peakEngagement.timestamp).toLocaleTimeString()}
+
+Your new summary should reference this context and highlight what's changed or emerged since then.
+`
+  }
+
   const userPrompt = `Analyze this exhibition booth session and provide a comprehensive summary.
 
 SESSION INFO:
@@ -46,7 +68,7 @@ SESSION INFO:
 - End: ${endTime.toLocaleString()}
 - Duration: ${durationMinutes} minutes
 - Total Observations: ${observations.length}
-
+${previousSummarySection}
 OBSERVATIONS:
 ${observationSummary}
 
