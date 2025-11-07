@@ -130,7 +130,7 @@ const App: React.FC = () => {
   // Update budget status
   const updateBudgetStatus = async () => {
     try {
-      const status = await apiClientRef.current.getBudgetStatus()
+      const status = await apiClientRef.current.getBudgetStatus(sessionIdRef.current)
       setBudgetStatus(status)
     } catch (err) {
       console.error("Failed to get budget status:", err)
@@ -206,6 +206,19 @@ const App: React.FC = () => {
     }
   }
 
+  // Handle budget reset
+  const handleResetBudget = () => {
+    // Generate new session ID to reset budget
+    sessionIdRef.current = `session-${Date.now()}-${Math.random().toString(36).substring(7)}`
+    // Clear observations and summary
+    setObservations([])
+    setSummary(null)
+    lastObservationTranscriptRef.current = ""
+    latestResponseTimestampRef.current = undefined
+    // Update budget status immediately
+    updateBudgetStatus()
+  }
+
   return (
     <>
       <AppShell header={{ height: 60 }} padding={0}>
@@ -271,6 +284,7 @@ const App: React.FC = () => {
                     onIntervalChange={setCaptureInterval}
                     autoSummaryEnabled={autoSummaryEnabled}
                     onAutoSummaryToggle={setAutoSummaryEnabled}
+                    onResetBudget={handleResetBudget}
                   />
                 </Box>
               </Stack>

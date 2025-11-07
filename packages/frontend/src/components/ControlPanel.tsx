@@ -1,6 +1,6 @@
 import React from "react"
 import { Button, Slider, Text, Progress, Paper, Switch, Group, Stack } from "@mantine/core"
-import { Settings, Pause, Play } from "lucide-react"
+import { Settings, Pause, Play, RotateCcw } from "lucide-react"
 import type { BudgetStatus } from "@ai-booth-observer/shared"
 import "./ControlPanel.css"
 
@@ -12,6 +12,7 @@ type Props = {
   onIntervalChange: (seconds: number) => void
   autoSummaryEnabled: boolean
   onAutoSummaryToggle: (enabled: boolean) => void
+  onResetBudget: () => void
 }
 
 export const ControlPanel: React.FC<Props> = ({
@@ -22,6 +23,7 @@ export const ControlPanel: React.FC<Props> = ({
   onIntervalChange,
   autoSummaryEnabled,
   onAutoSummaryToggle,
+  onResetBudget,
 }) => {
   const getBudgetColor = (): string => {
     if (!budgetStatus) return "var(--text-secondary)"
@@ -112,14 +114,25 @@ export const ControlPanel: React.FC<Props> = ({
         {/* Budget Status */}
         {budgetStatus && (
           <Paper className="control-section budget-section" p="md">
-            <div className="budget-header">
-              <Text className="control-label" fw={600}>
-                Budget Status
-              </Text>
-              <Text className="budget-percent" fw={700} style={{ color: getBudgetColor() }}>
-                {budgetStatus.budgetPercentUsed.toFixed(1)}%
-              </Text>
-            </div>
+            <Group justify="space-between" align="center" mb="sm">
+              <div className="budget-header">
+                <Text className="control-label" fw={600}>
+                  Budget Status
+                </Text>
+                <Text className="budget-percent" fw={700} style={{ color: getBudgetColor() }}>
+                  {budgetStatus.budgetPercentUsed.toFixed(1)}%
+                </Text>
+              </div>
+              <Button
+                variant="subtle"
+                size="xs"
+                leftSection={<RotateCcw size={14} />}
+                onClick={onResetBudget}
+                color="gray"
+              >
+                Reset
+              </Button>
+            </Group>
 
             <Progress
               value={budgetStatus.budgetPercentUsed}

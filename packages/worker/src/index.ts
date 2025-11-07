@@ -163,7 +163,8 @@ export default {
     if (url.pathname === "/budget" && request.method === "GET") {
       try {
         const maxTokens = parseInt(env.MAX_TOKENS_PER_DAY)
-        const budgetStatus = await rateLimiter.getBudgetStatus(maxTokens)
+        const sessionId = url.searchParams.get("sessionId") || undefined
+        const budgetStatus = await rateLimiter.getBudgetStatus(maxTokens, sessionId)
 
         return new Response(JSON.stringify(budgetStatus), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
