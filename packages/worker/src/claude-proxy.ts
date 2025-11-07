@@ -102,7 +102,7 @@ IMPORTANT: Read through the ENTIRE transcript carefully and count each distinct 
 Please analyze and provide a JSON response with this exact structure:
 
 {
-  "scene": "2-3 sentences describing who is present, what they're doing, body language, what they're looking at",
+  "scene": "2-3 sentences describing who is present (note clothing/attire if visible), what they're doing, body language, what they're looking at. DO NOT comment on age or demographics.",
   "audio": "2-3 sentences about topics being discussed, questions asked, mood/tone, any technical terms mentioned",
   "engagement": {
     "level": "high" | "medium" | "low",
