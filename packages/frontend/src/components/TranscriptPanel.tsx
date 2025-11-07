@@ -11,6 +11,7 @@ type Props = {
 
 export const TranscriptPanel: React.FC<Props> = ({ onTranscript, isActive }) => {
   const speechRef = useRef(new SpeechTranscription())
+  const transcriptEndRef = useRef<HTMLDivElement>(null)
 
   const [isActive_, setIsActive] = useState(false)
   const [isListening, setIsListening] = useState(false)
@@ -27,7 +28,7 @@ export const TranscriptPanel: React.FC<Props> = ({ onTranscript, isActive }) => 
 
         // Notify parent
         if (onTranscript) {
-          const recentText = speechRef.current.getRecentTranscript(60)
+          const recentText = speechRef.current.getRecentTranscript(120)
           onTranscript(recentText)
         }
       } else {
@@ -77,6 +78,11 @@ export const TranscriptPanel: React.FC<Props> = ({ onTranscript, isActive }) => 
     const intervalId = setInterval(checkListeningState, 500)
     return () => clearInterval(intervalId)
   }, [])
+
+  // Auto-scroll to bottom when new segments or interim text appears
+  useEffect(() => {
+    transcriptEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [segments, currentInterim])
 
   return (
     <Paper className="transcript-panel" shadow="sm" h="100%" p={0}>
@@ -142,6 +148,7 @@ export const TranscriptPanel: React.FC<Props> = ({ onTranscript, isActive }) => 
                 <Text className="text">{currentInterim}</Text>
               </div>
             )}
+            <div ref={transcriptEndRef} />
           </div>
         )}
       </div>

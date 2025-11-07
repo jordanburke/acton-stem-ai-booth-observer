@@ -4,7 +4,9 @@
 export type ObservationRequest = {
   imageBase64: string
   transcript: string
+  transcriptSinceLastObservation: string
   timestamp: string
+  previousObservations?: ObservationResponse[] // Rolling context (last 3-5 observations)
 }
 
 /**
@@ -75,4 +77,38 @@ export type SystemConfig = {
   captureIntervalSeconds: number
   transcriptWindowSeconds: number
   workerEndpoint: string
+}
+
+/**
+ * Meeting summary request sent from frontend to worker
+ */
+export type SummarizeRequest = {
+  observations: ObservationResponse[]
+  startTime?: string
+  endTime?: string
+}
+
+/**
+ * Meeting summary response from Claude via worker
+ */
+export type SummaryResponse = {
+  duration: string
+  totalObservations: number
+  engagementSummary: string
+  keyTopics: string[]
+  recommendations: string[]
+  attendeeInsights: string
+  peakEngagement: {
+    timestamp: string
+    level: EngagementLevel
+    reason: string
+  }
+  averageMetrics: {
+    peopleCount: number
+    questionsDetected: number
+    energyLevel: string
+  }
+  timestamp: string
+  tokensUsed: number
+  costEstimate: number
 }

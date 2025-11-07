@@ -37,7 +37,7 @@ export const HistoryModal: React.FC<Props> = ({ opened, onClose, observations })
           {observations
             .slice()
             .reverse()
-            .map((obs, index) => (
+            .map((obs, _index) => (
               <Paper key={obs.timestamp} className="history-observation" p="md" shadow="xs" withBorder>
                 <div className="history-observation-header">
                   <div className="history-timestamp">

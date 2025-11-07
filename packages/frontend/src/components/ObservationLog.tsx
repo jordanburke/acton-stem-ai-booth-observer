@@ -71,9 +71,7 @@ export const ObservationLog: React.FC<Props> = ({ observations, isAnalyzing = fa
                   <Eye size={16} style={{ marginRight: "0.5rem" }} />
                   <span>Scene & Conversation</span>
                 </div>
-                <div className="panel-timestamp">
-                  {new Date(latestObservation.timestamp).toLocaleTimeString()}
-                </div>
+                <div className="panel-timestamp">{new Date(latestObservation.timestamp).toLocaleTimeString()}</div>
               </div>
               <div className="panel-content">
                 <div className="observation-section">
@@ -101,9 +99,7 @@ export const ObservationLog: React.FC<Props> = ({ observations, isAnalyzing = fa
                   <BarChart3 size={16} style={{ marginRight: "0.5rem" }} />
                   <span>Engagement & Insights</span>
                 </div>
-                <div className="panel-timestamp">
-                  {new Date(latestObservation.timestamp).toLocaleTimeString()}
-                </div>
+                <div className="panel-timestamp">{new Date(latestObservation.timestamp).toLocaleTimeString()}</div>
               </div>
               <div className="panel-content">
                 <div className="observation-section">

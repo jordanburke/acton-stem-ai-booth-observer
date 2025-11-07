@@ -6,9 +6,26 @@
 import Anthropic from "@anthropic-ai/sdk"
 import type { ObservationRequest, ObservationResponse } from "@ai-booth-observer/shared"
 
-const SYSTEM_PROMPT = `You are an AI exhibition assistant observing a STEM education booth about agentic AI and software development.
+const SYSTEM_PROMPT = `You are an AI exhibition assistant at the DiscoverSTEM 2025 event.
 
-Your role is to analyze the current scene and provide actionable insights to help the exhibitor engage visitors effectively.
+EVENT CONTEXT:
+- Location: DiscoverSTEM at Acton-Boxborough Regional High School
+- Website: https://www.absteam.org/discoverstem
+- Format: STEM career exploration trade show for grades 7-12
+- Goal: Connect students with STEM professionals and real-world applications
+
+BOOTH CONTEXT:
+- Focus: Agentic AI and Large Language Models (LLMs)
+- Demonstration: Live AI system using Claude to observe and analyze visitor engagement
+- Target: Middle and high school students (ages 12-18)
+- Learning Goals: Understanding how AI can autonomously perceive, reason, and provide insights
+
+Your role is to analyze the current scene and provide actionable insights to help the exhibitor engage young visitors effectively with age-appropriate explanations of AI concepts.
+
+CRITICAL METRICS REQUIREMENT:
+- Accurately count visitor questions in the transcript - this is a PRIMARY metric for engagement tracking
+- Count every question mark and question phrase from visitors
+- Do NOT default questionsDetected to 0 when questions are present
 
 Be concise but insightful. Your analysis should be scannable at a glance.`
 
@@ -20,22 +37,67 @@ export async function analyzeBoothObservation(
     apiKey: anthropicApiKey,
   })
 
+  // Build rolling context section if previous observations are available
+  let rollingContextSection = ""
+  if (request.previousObservations && request.previousObservations.length > 0) {
+    const contextSummaries = request.previousObservations
+      .map(
+        (obs, idx) =>
+          `Observation ${idx + 1} (${new Date(obs.timestamp).toLocaleTimeString()}):
+  - Engagement: ${obs.engagement.level} - ${obs.engagement.reason}
+  - People: ${obs.metrics.peopleCount}, Questions: ${obs.metrics.questionsDetected}, Energy: ${obs.metrics.energy}
+  - Scene: ${obs.scene}
+  - Recommendation given: ${obs.recommendation}`,
+      )
+      .join("\n\n")
+
+    rollingContextSection = `
+<<<CONTEXT FROM PREVIOUS OBSERVATIONS>>>
+You have access to the last ${request.previousObservations.length} observations for continuity and trend analysis:
+
+${contextSummaries}
+
+Use this context to:
+1. Identify engagement trends (improving, declining, stable)
+2. Recognize if your previous recommendations were effective
+3. Detect returning visitors or ongoing conversations
+4. Avoid repeating ineffective suggestions
+5. Notice if questions are becoming more advanced (indicates learning)`
+  }
+
   // Construct the user prompt
   const userPrompt = `
 CURRENT TIMESTAMP: ${request.timestamp}
+${rollingContextSection}
 
 VISUAL INPUT (image attached):
 Analyze what you see in the camera feed.
 
-AUDIO INPUT (last 60 seconds of conversation):
+AUDIO TRANSCRIPT (last 120 seconds of conversation):
 "${request.transcript}"
 
-QUESTION DETECTION GUIDANCE:
-Count ONLY visitor questions (ignore exhibitor questions). A question is:
-- A sentence ending with ? (e.g., "What does this do?", "How does it work?")
-- Contains question words: who, what, when, where, why, how, can, could, would, should, is, are, does
-- Example questions: "Can you explain that?", "What's the purpose?", "How do I start?"
-- Do NOT count rhetorical questions or exhibitor clarifications
+<<<SINCE LAST OBSERVATION>>>
+The following text is NEW since your previous analysis (focus here for conversation continuity):
+"${request.transcriptSinceLastObservation}"
+
+⚠️ CRITICAL: QUESTION DETECTION GUIDANCE ⚠️
+Your PRIMARY task is to accurately count VISITOR questions in the transcript.
+
+WHAT TO COUNT:
+1. Explicit questions ending with "?" (e.g., "What does this do?", "How does it work?")
+2. Implicit questions with question words: who, what, when, where, why, how, can, could, would, should, is, are, does
+   - "Can you explain that?" → COUNT
+   - "What's the purpose?" → COUNT
+   - "How do I start?" → COUNT
+   - "Is this using machine learning?" → COUNT
+   - "Does it understand images?" → COUNT
+
+WHAT NOT TO COUNT:
+- Exhibitor's questions to visitors (e.g., "Would you like to see more?")
+- Rhetorical questions (e.g., "Isn't that amazing?")
+- Statements (e.g., "That's interesting")
+
+IMPORTANT: Read through the ENTIRE transcript carefully and count each distinct visitor question. If you see 3 questions, return "questionsDetected": 3, not 0.
 
 Please analyze and provide a JSON response with this exact structure:
 
@@ -49,7 +111,7 @@ Please analyze and provide a JSON response with this exact structure:
   "recommendation": "2-3 sentences of what the exhibitor should do RIGHT NOW - specific and actionable",
   "metrics": {
     "peopleCount": <number>,
-    "questionsDetected": <number of visitor questions found in audio>,
+    "questionsDetected": <CRITICAL: exact count of visitor questions in transcript - DO NOT default to 0>,
     "energy": "high" | "medium" | "low"
   }
 }

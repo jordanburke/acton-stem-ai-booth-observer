@@ -7,4 +7,6 @@ export type {
   SystemConfig,
   EngagementLevel,
   ObservationMetrics,
+  SummarizeRequest,
+  SummaryResponse,
 } from "./types"

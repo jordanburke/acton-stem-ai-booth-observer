@@ -6,11 +6,13 @@ describe("Shared Types", () => {
     const request: ObservationRequest = {
       imageBase64: "data:image/jpeg;base64,test",
       transcript: "Hello world",
+      transcriptSinceLastObservation: "Hello world",
       timestamp: new Date().toISOString(),
     }
 
     expect(request.imageBase64).toBeDefined()
     expect(request.transcript).toBeDefined()
+    expect(request.transcriptSinceLastObservation).toBeDefined()
     expect(request.timestamp).toBeDefined()
   })
 

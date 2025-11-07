@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react"
 import { AppShell, Title, Text, Button, Modal, Flex, Stack, Box } from "@mantine/core"
 import { useDisclosure } from "@mantine/hooks"
-import { Bot, Lock, AlertTriangle, History } from "lucide-react"
-import type { ObservationResponse, BudgetStatus } from "@ai-booth-observer/shared"
+import { Bot, Lock, AlertTriangle, History, FileText } from "lucide-react"
+import type { ObservationResponse, BudgetStatus, SummaryResponse } from "@ai-booth-observer/shared"
 import { ObserverAPIClient } from "./lib/api-client"
 import { CameraFeed } from "./components/CameraFeed"
 import { TranscriptPanel } from "./components/TranscriptPanel"
@@ -11,34 +11,40 @@ import { ControlPanel } from "./components/ControlPanel"
 import { PrivacyBanner } from "./components/PrivacyBanner"
 import { MetricsPanel } from "./components/MetricsPanel"
 import { HistoryModal } from "./components/HistoryModal"
+import { SummaryModal } from "./components/SummaryModal"
 import "./App.css"
 
 const App: React.FC = () => {
   // Modal states
   const [privacyOpened, { open: openPrivacy, close: closePrivacy }] = useDisclosure(false)
   const [historyOpened, { open: openHistory, close: closeHistory }] = useDisclosure(false)
+  const [summaryOpened, { open: openSummary, close: closeSummary }] = useDisclosure(false)
 
   // System state
   const [isActive, setIsActive] = useState(false)
   const [captureInterval, setCaptureInterval] = useState(10) // seconds
+  const [autoSummaryEnabled, setAutoSummaryEnabled] = useState(false)
 
   // Data state
   const [observations, setObservations] = useState<ObservationResponse[]>([])
   const [budgetStatus, setBudgetStatus] = useState<BudgetStatus>()
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [error, setError] = useState<string>()
+  const [summary, setSummary] = useState<SummaryResponse | null>(null)
+  const [isSummarizing, setIsSummarizing] = useState(false)
 
   // Latest captures
   const [latestImage, setLatestImage] = useState<string>()
   const latestTranscriptRef = useRef<string | undefined>(undefined)
+  const lastObservationTranscriptRef = useRef<string>("")
 
   // Race condition prevention - track latest observation timestamp
-  const latestResponseTimestampRef = useRef<string>()
+  const latestResponseTimestampRef = useRef<string | undefined>(undefined)
 
   // API client
   const apiClientRef = useRef(new ObserverAPIClient())
 
-  // Handle camera capture
+  // Handle camera capture - triggers observation on every capture
   const handleCameraCapture = (base64: string) => {
     console.log("Camera captured frame", base64.substring(0, 50) + "...")
     setLatestImage(base64)
@@ -51,12 +57,19 @@ const App: React.FC = () => {
     latestTranscriptRef.current = text
   }
 
-  // Trigger observation when we have both image and transcript
-  const triggerObservation = async (image?: string) => {
-    const imageToUse = image || latestImage
-    const transcript = latestTranscriptRef.current || "(No recent speech detected in last 60 seconds)"
+  // Trigger observation with rolling context
+  const triggerObservation = async (imageOverride?: string) => {
+    const imageToUse = imageOverride || latestImage
+    const currentTranscript = latestTranscriptRef.current || "(No recent speech detected in last 120 seconds)"
+
+    // Calculate what's new since last observation
+    const lastSentTranscript = lastObservationTranscriptRef.current
+    const newTranscriptPortion = lastSentTranscript
+      ? currentTranscript.replace(lastSentTranscript, "").trim()
+      : currentTranscript
 
     if (!imageToUse || isAnalyzing) {
+      console.log("⏭️ Skipping observation - no image available or already analyzing")
       return
     }
 
@@ -64,16 +77,28 @@ const App: React.FC = () => {
     setError(undefined)
 
     try {
+      // Get last 5 observations for rolling context
+      const rollingContext = observations.slice(-5)
+
       console.log("Latest transcript ref:", latestTranscriptRef.current)
-      console.log("Sending observation request with transcript:", transcript)
-      const response = await apiClientRef.current.observe(imageToUse, transcript)
+      console.log("Sending observation request with full transcript (120s):", currentTranscript)
+      console.log("New portion since last observation:", newTranscriptPortion)
+      console.log(`Rolling context: ${rollingContext.length} previous observations`)
+
+      const response = await apiClientRef.current.observe(
+        imageToUse,
+        currentTranscript,
+        newTranscriptPortion,
+        rollingContext.length > 0 ? rollingContext : undefined,
+      )
       console.log("Observation received:", response)
+
+      // Update last sent transcript for next observation
+      lastObservationTranscriptRef.current = currentTranscript
 
       // Race condition prevention: only update if this response is newer than what we have
       const responseTime = new Date(response.timestamp).getTime()
-      const latestTime = latestResponseTimestampRef.current
-        ? new Date(latestResponseTimestampRef.current).getTime()
-        : 0
+      const latestTime = latestResponseTimestampRef.current ? new Date(latestResponseTimestampRef.current).getTime() : 0
 
       if (responseTime > latestTime) {
         // Add to observations list
@@ -108,6 +133,32 @@ const App: React.FC = () => {
     }
   }
 
+  // Generate meeting summary
+  const handleGenerateSummary = async (openModal = true) => {
+    if (observations.length === 0) {
+      setError("No observations to summarize. Start observing first.")
+      return
+    }
+
+    setIsSummarizing(true)
+    setError(undefined)
+
+    try {
+      const summaryResponse = await apiClientRef.current.summarize(observations)
+      setSummary(summaryResponse)
+      if (openModal) {
+        openSummary()
+      }
+      await updateBudgetStatus()
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to generate summary"
+      console.error("Summary error:", errorMessage)
+      setError(errorMessage)
+    } finally {
+      setIsSummarizing(false)
+    }
+  }
+
   // Check worker health on mount
   useEffect(() => {
     const checkHealth = async () => {
@@ -122,6 +173,19 @@ const App: React.FC = () => {
 
     checkHealth()
   }, [])
+
+  // Auto-summary timer
+  useEffect(() => {
+    if (!autoSummaryEnabled || !isActive || observations.length === 0) {
+      return
+    }
+
+    const interval = setInterval(() => {
+      handleGenerateSummary(false) // Don't auto-open modal
+    }, 60000) // 1 minute = 60000ms
+
+    return () => clearInterval(interval)
+  }, [autoSummaryEnabled, isActive, observations.length])
 
   // Handle system toggle
   const handleToggle = (active: boolean) => {
@@ -155,6 +219,15 @@ const App: React.FC = () => {
               <Text className="app-subtitle">Live Multi-Modal Agentic AI System</Text>
             </div>
             <div style={{ display: "flex", gap: "0.5rem" }}>
+              <Button
+                variant="subtle"
+                leftSection={<FileText size={16} />}
+                onClick={() => handleGenerateSummary()}
+                disabled={observations.length === 0}
+                loading={isSummarizing}
+              >
+                Summary
+              </Button>
               <Button variant="subtle" leftSection={<History size={16} />} onClick={openHistory}>
                 History ({observations.length})
               </Button>
@@ -188,6 +261,8 @@ const App: React.FC = () => {
                     budgetStatus={budgetStatus}
                     captureInterval={captureInterval}
                     onIntervalChange={setCaptureInterval}
+                    autoSummaryEnabled={autoSummaryEnabled}
+                    onAutoSummaryToggle={setAutoSummaryEnabled}
                   />
                 </Box>
               </Stack>
@@ -205,7 +280,9 @@ const App: React.FC = () => {
                       <TranscriptPanel isActive={isActive} onTranscript={handleTranscript} />
                     </Box>
                     <Box style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
-                      <MetricsPanel metrics={observations.length > 0 ? observations[observations.length - 1].metrics : undefined} />
+                      <MetricsPanel
+                        metrics={observations.length > 0 ? observations[observations.length - 1].metrics : undefined}
+                      />
                     </Box>
                   </Flex>
                 </Box>
@@ -221,6 +298,8 @@ const App: React.FC = () => {
       </Modal>
 
       <HistoryModal opened={historyOpened} onClose={closeHistory} observations={observations} />
+
+      <SummaryModal opened={summaryOpened} onClose={closeSummary} summary={summary} isLoading={isSummarizing} />
     </>
   )
 }

@@ -3,8 +3,9 @@
  * Handles Claude API calls with rate limiting and cost tracking
  */
 
-import type { ObservationRequest, ErrorResponse } from "@ai-booth-observer/shared"
+import type { ObservationRequest, ErrorResponse, SummarizeRequest } from "@ai-booth-observer/shared"
 import { analyzeBoothObservation } from "./claude-proxy"
+import { summarizeMeeting } from "./claude-summarizer"
 import { RateLimiter } from "./rate-limiter"
 
 export type Env = {
@@ -91,6 +92,63 @@ export default {
         const errorResponse: ErrorResponse = {
           error: error instanceof Error ? error.message : "Unknown error",
           code: "OBSERVATION_ERROR",
+          timestamp: new Date().toISOString(),
+        }
+
+        return new Response(JSON.stringify(errorResponse), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        })
+      }
+    }
+
+    // Summarize endpoint
+    if (url.pathname === "/summarize" && request.method === "POST") {
+      try {
+        // Check API key
+        if (!env.ANTHROPIC_API_KEY) {
+          throw new Error("ANTHROPIC_API_KEY not configured")
+        }
+
+        // Parse request
+        const summarizeRequest: SummarizeRequest = await request.json()
+
+        // Validate request
+        if (!summarizeRequest.observations || summarizeRequest.observations.length === 0) {
+          throw new Error("No observations provided")
+        }
+
+        // Check rate limits
+        const maxTokens = parseInt(env.MAX_TOKENS_PER_DAY)
+        const canProceed = await rateLimiter.canMakeRequest(maxTokens)
+
+        if (!canProceed) {
+          const errorResponse: ErrorResponse = {
+            error: "Daily budget limit reached",
+            code: "BUDGET_EXCEEDED",
+            timestamp: new Date().toISOString(),
+          }
+          return new Response(JSON.stringify(errorResponse), {
+            status: 429,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          })
+        }
+
+        // Generate summary
+        const response = await summarizeMeeting(summarizeRequest.observations, env.ANTHROPIC_API_KEY)
+
+        // Record usage
+        await rateLimiter.recordUsage(response.tokensUsed, response.costEstimate)
+
+        return new Response(JSON.stringify(response), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        })
+      } catch (error) {
+        console.error("Summarize error:", error)
+
+        const errorResponse: ErrorResponse = {
+          error: error instanceof Error ? error.message : "Unknown error",
+          code: "SUMMARIZE_ERROR",
           timestamp: new Date().toISOString(),
         }
 

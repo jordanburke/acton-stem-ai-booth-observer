@@ -1,5 +1,5 @@
 import React from "react"
-import { Button, Slider, Text, Progress, Paper } from "@mantine/core"
+import { Button, Slider, Text, Progress, Paper, Switch } from "@mantine/core"
 import { Settings, Pause, Play, Video, Mic } from "lucide-react"
 import type { BudgetStatus } from "@ai-booth-observer/shared"
 import { CameraCapture } from "../lib/webrtc"
@@ -12,6 +12,8 @@ type Props = {
   budgetStatus?: BudgetStatus
   captureInterval: number
   onIntervalChange: (seconds: number) => void
+  autoSummaryEnabled: boolean
+  onAutoSummaryToggle: (enabled: boolean) => void
 }
 
 export const ControlPanel: React.FC<Props> = ({
@@ -20,6 +22,8 @@ export const ControlPanel: React.FC<Props> = ({
   budgetStatus,
   captureInterval,
   onIntervalChange,
+  autoSummaryEnabled,
+  onAutoSummaryToggle,
 }) => {
   const getBudgetColor = (): string => {
     if (!budgetStatus) return "var(--text-secondary)"
@@ -88,6 +92,22 @@ export const ControlPanel: React.FC<Props> = ({
               { value: 60, label: "60s" },
             ]}
             className="slider"
+          />
+        </div>
+
+        {/* Auto-Summary Toggle */}
+        <div className="control-section">
+          <div className="toggle-info">
+            <Text fw={600}>Auto-Summary</Text>
+            <Text size="sm" c="dimmed" mt={4}>
+              Generate summary every 1 minute
+            </Text>
+          </div>
+          <Switch
+            checked={autoSummaryEnabled}
+            onChange={(event) => onAutoSummaryToggle(event.currentTarget.checked)}
+            size="md"
+            color="blue"
           />
         </div>
 
